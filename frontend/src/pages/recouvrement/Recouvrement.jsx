@@ -120,7 +120,7 @@ export default function Recouvrement() {
 }
 
 const styles = {
-  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh' },
+  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
   title: { fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '24px' },
   filters: { marginBottom: '20px' },
   select: { padding: '10px 14px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px', background: '#fff' },

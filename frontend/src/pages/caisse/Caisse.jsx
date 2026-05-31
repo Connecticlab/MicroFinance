@@ -126,7 +126,7 @@ export default function Caisse() {
 }
 
 const styles = {
-  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh' },
+  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
   title: { fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '24px' },
   soldeGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' },
   soldeCard: { background: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },

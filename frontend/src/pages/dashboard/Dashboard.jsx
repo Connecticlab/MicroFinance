@@ -124,10 +124,10 @@ export default function Dashboard() {
 }
 
 const styles = {
-  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh' },
+  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
   loading: { padding: '40px', textAlign: 'center', color: '#6B7280' },
   title: { fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '24px' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px', width: '100%' },
   card: { background: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
   cardIcon: { fontSize: '24px', marginBottom: '8px' },
   cardValue: { fontSize: '28px', fontWeight: 'bold', color: '#111827' },
@@ -135,12 +135,12 @@ const styles = {
   cardSub: { fontSize: '12px', color: '#9CA3AF', marginTop: '2px' },
   section: { marginBottom: '32px' },
   sectionTitle: { fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' },
-  parGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' },
+  parGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', width: '100%' },
   parCard: { background: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', textAlign: 'center' },
   parLabel: { fontSize: '13px', color: '#6B7280', marginBottom: '8px' },
   parValue: { fontSize: '32px', fontWeight: 'bold' },
   parSeuil: { fontSize: '11px', color: '#9CA3AF', marginTop: '4px' },
-  caisseGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' },
+  caisseGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', width: '100%' },
   caisseCard: { borderRadius: '8px', padding: '20px' },
   caisseLabel: { fontSize: '13px', color: '#6B7280', marginBottom: '8px' },
   caisseValue: { fontSize: '22px', fontWeight: 'bold' },

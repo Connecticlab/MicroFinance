@@ -145,7 +145,7 @@ export default function Credits() {
 }
 
 const styles = {
-  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh' },
+  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   title: { fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 },
   btnPrimary: { padding: '10px 20px', background: '#1A6FD4', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' },

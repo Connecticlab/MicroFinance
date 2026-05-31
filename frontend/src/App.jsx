@@ -24,7 +24,7 @@ export default function App() {
           element={
             <PrivateRoute>
               <Layout>
-                <div style={{ marginLeft: '240px' }}>
+                <div style={{ marginLeft: '240px', flex: 1, minHeight: '100vh', background: '#F9FAFB', width: 'calc(100vw - 240px)' }}>
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/membres" element={<Membres />} />

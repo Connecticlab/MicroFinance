@@ -68,7 +68,7 @@ export default function Remboursements() {
 }
 
 const styles = {
-  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh' },
+  page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
   title: { fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '24px' },
   tableWrapper: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },

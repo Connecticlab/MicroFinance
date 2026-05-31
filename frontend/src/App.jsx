@@ -4,6 +4,8 @@ import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Dashboard from './pages/dashboard/Dashboard';
 import Membres from './pages/membres/Membres';
+import NouveauMembre from './pages/membres/NouveauMembre';
+import DetailMembre from './pages/membres/DetailMembre';
 import Credits from './pages/credits/Credits';
 import Remboursements from './pages/remboursements/Remboursements';
 import Caisse from './pages/caisse/Caisse';
@@ -28,6 +30,8 @@ export default function App() {
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/membres" element={<Membres />} />
+                    <Route path="/membres/nouveau" element={<NouveauMembre />} />
+                    <Route path="/membres/:id" element={<DetailMembre />} />
                     <Route path="/credits" element={<Credits />} />
                     <Route path="/remboursements" element={<Remboursements />} />
                     <Route path="/caisse" element={<Caisse />} />

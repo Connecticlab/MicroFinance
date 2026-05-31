@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMembres, validerAdhesion, suspendreMembre } from '../../api/membres';
+import { getMembres, validerAdhesion, suspendreMembre, reactiversMembre, exclureMembre } from '../../api/membres';
 
 export default function Membres() {
   const [membres, setMembres] = useState([]);
@@ -32,6 +32,18 @@ export default function Membres() {
   const handleSuspendre = async (id) => {
     await suspendreMembre(id);
     fetchMembres();
+  };
+
+  const handleReactiver = async (id) => {
+    await reactiversMembre(id);
+    fetchMembres();
+  };
+
+  const handleExclure = async (id) => {
+    if (window.confirm('Confirmer l\'exclusion de ce membre ?')) {
+      await exclureMembre(id);
+      fetchMembres();
+    }
   };
 
   const statutColor = {
@@ -100,7 +112,10 @@ export default function Membres() {
               ) : (
                 membres.map((m) => (
                   <tr key={m.id} style={styles.tr}>
-                    <td style={styles.td}>{m.numero_membre}</td>
+                    <td style={styles.td}>
+                      <button style={styles.btnSmallBlue} onClick={() => window.location.href=`/membres/${m.id}`}>
+                        👁 Détail
+                      </button>{' '}{m.numero_membre}</td>
                     <td style={styles.td}>{m.nom_complet}</td>
                     <td style={styles.td}>{m.telephone}</td>
                     <td style={styles.td}>{m.date_adhesion}</td>
@@ -121,20 +136,24 @@ export default function Membres() {
                     </td>
                     <td style={styles.td}>
                       {m.statut === 'EN_ATTENTE' && (
-                        <button
-                          style={styles.btnSmallGreen}
-                          onClick={() => handleValider(m.id)}
-                        >
-                          Valider
+                        <button style={styles.btnSmallGreen} onClick={() => handleValider(m.id)}>
+                          ✅ Valider
                         </button>
                       )}
                       {m.statut === 'ACTIF' && (
-                        <button
-                          style={styles.btnSmallRed}
-                          onClick={() => handleSuspendre(m.id)}
-                        >
-                          Suspendre
+                        <button style={styles.btnSmallRed} onClick={() => handleSuspendre(m.id)}>
+                          ⏸ Suspendre
                         </button>
+                      )}
+                      {m.statut === 'SUSPENDU' && (
+                        <>
+                          <button style={styles.btnSmallGreen} onClick={() => handleReactiver(m.id)}>
+                            ▶ Réactiver
+                          </button>
+                          <button style={{...styles.btnSmallRed, marginLeft: '4px'}} onClick={() => handleExclure(m.id)}>
+                            🚫 Exclure
+                          </button>
+                        </>
                       )}
                     </td>
                   </tr>

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, filters
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -9,6 +10,7 @@ from .serializers import MembreSerializer, MembreListSerializer
 class MembreViewSet(viewsets.ModelViewSet):
     queryset = Membre.objects.all().order_by('-date_adhesion')
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['statut', 'sexe', 'frais_adhesion_paye']
     search_fields = ['nom', 'prenom', 'numero_membre', 'telephone']
@@ -38,3 +40,21 @@ class MembreViewSet(viewsets.ModelViewSet):
         membre.statut = 'SUSPENDU'
         membre.save()
         return Response({'message': f'{membre.nom_complet} suspendu.'})
+
+    @action(detail=True, methods=['post'])
+    def reactiver(self, request, pk=None):
+        membre = self.get_object()
+        if membre.statut != 'SUSPENDU':
+            return Response({'error': 'Ce membre n\'est pas suspendu.'}, status=400)
+        membre.statut = 'ACTIF'
+        membre.save()
+        return Response({'message': f'{membre.nom_complet} réactivé.'})
+
+    @action(detail=True, methods=['post'])
+    def exclure(self, request, pk=None):
+        membre = self.get_object()
+        if membre.a_credit_actif:
+            return Response({'error': 'Impossible d\'exclure un membre avec un crédit actif.'}, status=400)
+        membre.statut = 'EXCLU'
+        membre.save()
+        return Response({'message': f'{membre.nom_complet} exclu.'})

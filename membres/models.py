@@ -64,6 +64,16 @@ class Membre(models.Model):
     beneficiaire_telephone = models.CharField(max_length=20, blank=True)
     beneficiaire_lien = models.CharField(max_length=50, blank=True)
 
+    # Documents justificatifs
+    copie_piece_identite = models.FileField(
+        upload_to='membres/pieces_identite/',
+        verbose_name="Copie pièce d'identité (légalisée)"
+    )
+    justificatif_domicile = models.FileField(
+        upload_to='membres/justificatifs_domicile/',
+        verbose_name="Justificatif de domicile"
+    )
+
     # Métadonnées
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -45,7 +45,7 @@ export default function Credits() {
     <div style={styles.page}>
       <div style={styles.header}>
         <h1 style={styles.title}>Dossiers de Crédit</h1>
-        <button style={styles.btnPrimary}>+ Nouveau dossier</button>
+        <button style={styles.btnPrimary} onClick={() => window.location.href='/credits/nouveau'}>+ Nouveau dossier</button>
       </div>
 
       <div style={styles.filters}>
@@ -100,7 +100,10 @@ export default function Credits() {
               ) : (
                 credits.map((c) => (
                   <tr key={c.id} style={styles.tr}>
-                    <td style={styles.td}>{c.numero_dossier}</td>
+                    <td style={styles.td}>
+                      <button style={styles.btnSmallBlue} onClick={() => window.location.href=`/credits/${c.id}`}>
+                        👁 Détail
+                      </button>{' '}{c.numero_dossier}</td>
                     <td style={styles.td}>{c.membre_nom}</td>
                     <td style={styles.td}>
                       {c.montant_accorde

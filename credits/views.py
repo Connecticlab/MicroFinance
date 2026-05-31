@@ -60,7 +60,8 @@ class DossierCreditViewSet(viewsets.ModelViewSet):
                 {'error': 'Le montant accordé est requis.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        dossier.montant_accorde = montant
+        from decimal import Decimal
+        dossier.montant_accorde = Decimal(str(montant))
         dossier.statut = 'APPROUVE'
         dossier.date_approbation = timezone.now().date()
         dossier.save()

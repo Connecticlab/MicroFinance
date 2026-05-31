@@ -7,6 +7,8 @@ import Membres from './pages/membres/Membres';
 import NouveauMembre from './pages/membres/NouveauMembre';
 import DetailMembre from './pages/membres/DetailMembre';
 import Credits from './pages/credits/Credits';
+import NouveauCredit from './pages/credits/NouveauCredit';
+import DetailCredit from './pages/credits/DetailCredit';
 import Remboursements from './pages/remboursements/Remboursements';
 import Caisse from './pages/caisse/Caisse';
 import Recouvrement from './pages/recouvrement/Recouvrement';
@@ -33,6 +35,8 @@ export default function App() {
                     <Route path="/membres/nouveau" element={<NouveauMembre />} />
                     <Route path="/membres/:id" element={<DetailMembre />} />
                     <Route path="/credits" element={<Credits />} />
+                    <Route path="/credits/nouveau" element={<NouveauCredit />} />
+                    <Route path="/credits/:id" element={<DetailCredit />} />
                     <Route path="/remboursements" element={<Remboursements />} />
                     <Route path="/caisse" element={<Caisse />} />
                     <Route path="/recouvrement" element={<Recouvrement />} />

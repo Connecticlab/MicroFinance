@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCredit, approuverDossier, debloquerDossier, rejeterDossier, soumettreDossier } from '../../api/credits';
+import api from '../../api/axios';
 
 export default function DetailCredit() {
   const { id } = useParams();
@@ -11,6 +12,20 @@ export default function DetailCredit() {
   const [motifRejet, setMotifRejet] = useState('');
   const [showApprouver, setShowApprouver] = useState(false);
   const [showRejeter, setShowRejeter] = useState(false);
+
+  const ouvrirPDF = async (url, nom) => {
+    try {
+      const res = await api.get(url, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.target = '_blank';
+      link.download = nom;
+      link.click();
+    } catch (err) {
+      alert('Erreur lors de la génération du PDF.');
+    }
+  };
 
   const fetchCredit = () => {
     getCredit(id).then(res => {
@@ -95,7 +110,19 @@ export default function DetailCredit() {
             </button>
           </>
         )}
-        {credit.statut === 'APPROUVE' && (
+        {['APPROUVE', 'EN_COURS', 'SOLDE', 'DEBLOQUE'].includes(credit.statut) && (
+        <button style={styles.btnBlue}
+          onClick={() => ouvrirPDF(`/credits/${id}/contrat_pdf/`, `Contrat_${credit.numero_dossier}.pdf`)}>
+          📄 Contrat PDF
+        </button>
+      )}
+      {['EN_COURS', 'SOLDE', 'DEBLOQUE'].includes(credit.statut) && (
+        <button style={{...styles.btnBlue, background: '#4BB543'}}
+          onClick={() => ouvrirPDF(`/credits/${id}/recu_pdf/`, `Recu_${credit.numero_dossier}.pdf`)}>
+          🧾 Reçu de déblocage
+        </button>
+      )}
+      {credit.statut === 'APPROUVE' && (
           <button style={styles.btnGreen} onClick={handleDebloquer}>
             🚀 Débloquer le crédit
           </button>

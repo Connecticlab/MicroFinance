@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, filters
+from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -100,6 +101,26 @@ class DossierCreditViewSet(viewsets.ModelViewSet):
         dossier.statut = 'EN_COURS'
         dossier.date_echeance_finale = date_echeance
         dossier.save()
+
+    @action(detail=True, methods=['get'])
+    def contrat_pdf(self, request, pk=None):
+        from .pdf_generator import generer_contrat_credit
+        dossier = self.get_object()
+        buffer = generer_contrat_credit(dossier)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Contrat_{dossier.numero_dossier}.pdf"'
+        return response
+
+    @action(detail=True, methods=['get'])
+    def recu_pdf(self, request, pk=None):
+        from .pdf_generator import generer_recu_deblocage
+        dossier = self.get_object()
+        if dossier.statut not in ['DEBLOQUE', 'EN_COURS', 'SOLDE']:
+            return Response({'error': 'Le crédit n\'a pas encore été débloqué.'}, status=400)
+        buffer = generer_recu_deblocage(dossier)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Recu_{dossier.numero_dossier}.pdf"'
+        return response
 
     @action(detail=True, methods=['post'])
     def rejeter(self, request, pk=None):

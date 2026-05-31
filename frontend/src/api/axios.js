@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.8:8000/api';
+const API_URL = '/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Intercepteur : ajoute le token JWT à chaque requête
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -21,7 +20,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Intercepteur : rafraîchit le token si expiré
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -31,9 +29,7 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post(`${API_URL}/auth/refresh/`, {
-            refresh,
-          });
+          const res = await axios.post('/api/auth/refresh/', { refresh });
           localStorage.setItem('access_token', res.data.access);
           original.headers.Authorization = `Bearer ${res.data.access}`;
           return api(original);

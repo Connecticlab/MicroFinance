@@ -1,10 +1,8 @@
 import api from './axios';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.8:8000/api';
-
 export const login = async (username, password) => {
-  const res = await axios.post(`${API_URL}/auth/login/`, { username, password });
+  const res = await axios.post('/api/auth/login/', { username, password });
   localStorage.setItem('access_token', res.data.access);
   localStorage.setItem('refresh_token', res.data.refresh);
   return res.data;

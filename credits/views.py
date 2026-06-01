@@ -76,6 +76,11 @@ class DossierCreditViewSet(viewsets.ModelViewSet):
                 {'error': 'Seul un dossier approuvé peut être débloqué.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        if not dossier.frg_verse:
+            return Response(
+                {'error': 'Le FRG doit être versé avant le déblocage du crédit.'},
+                status=400
+            )
         dossier.statut = 'DEBLOQUE'
         dossier.date_deblocage = timezone.now().date()
         dossier.save()
@@ -121,6 +126,34 @@ class DossierCreditViewSet(viewsets.ModelViewSet):
         response = HttpResponse(buffer, content_type='application/pdf')
         response['Content-Disposition'] = f'inline; filename="Recu_{dossier.numero_dossier}.pdf"'
         return response
+
+    @action(detail=True, methods=['post'])
+    def verser_frg(self, request, pk=None):
+        from decimal import Decimal
+        from django.utils import timezone
+        dossier = self.get_object()
+        if dossier.frg_verse:
+            return Response({'error': 'Le FRG a déjà été versé.'}, status=400)
+        if dossier.statut not in ['APPROUVE', 'EN_COURS', 'DEBLOQUE', 'SOLDE']:
+            return Response({'error': 'Le dossier doit être approuvé pour verser le FRG.'}, status=400)
+
+        mode = request.data.get('mode_versement', 'ESPECES')
+        dossier.frg_verse = True
+        dossier.frg_date_versement = timezone.now().date()
+        dossier.frg_mode_versement = mode
+        dossier.save()
+
+        # Écriture en caisse
+        from caisse.models import EcritureCompteGlobal
+        EcritureCompteGlobal.objects.create(
+            type_ecriture='ENTREE',
+            categorie='FRG',
+            montant=dossier.frg,
+            dossier_credit=dossier,
+            description=f'Versement FRG — {dossier.numero_dossier} — {dossier.membre.nom_complet}',
+            saisi_par=request.user
+        )
+        return Response({'message': f'FRG de {int(dossier.frg):,} FCFA versé avec succès.'.replace(",", " ")})
 
     @action(detail=True, methods=['post'])
     def rejeter(self, request, pk=None):

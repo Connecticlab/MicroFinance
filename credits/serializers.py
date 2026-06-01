@@ -21,6 +21,7 @@ class DossierCreditSerializer(serializers.ModelSerializer):
             'numero_dossier', 'frg',
             'montant_net_debloque', 'montant_rembourse',
             'montant_restant', 'penalites_total',
+            'frg_date_versement',
             'created_at', 'updated_at'
         )
 

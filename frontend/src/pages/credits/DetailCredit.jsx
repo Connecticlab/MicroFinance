@@ -14,6 +14,8 @@ export default function DetailCredit() {
   const [motifRejet, setMotifRejet] = useState('');
   const [showApprouver, setShowApprouver] = useState(false);
   const [showRejeter, setShowRejeter] = useState(false);
+  const [showFRG, setShowFRG] = useState(false);
+  const [modeFRG, setModeFRG] = useState('ESPECES');
 
   const ouvrirPDF = async (url, nom) => {
     try {
@@ -67,6 +69,16 @@ export default function DetailCredit() {
     fetchCredit();
   };
 
+  const handleVerserFRG = async () => {
+    try {
+      await api.post(`/credits/${id}/verser_frg/`, { mode_versement: modeFRG });
+      setShowFRG(false);
+      fetchCredit();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erreur lors du versement.');
+    }
+  };
+
   const handleSoumettre = async () => {
     await soumettreDossier(id);
     fetchCredit();
@@ -112,7 +124,13 @@ export default function DetailCredit() {
             </button>
           </>
         )}
-        {['APPROUVE', 'EN_COURS', 'SOLDE', 'DEBLOQUE'].includes(credit.statut) && (
+        {['APPROUVE', 'EN_COURS', 'DEBLOQUE', 'SOLDE'].includes(credit.statut) && !credit.frg_verse && perms.peutApprouverCredit && (
+        <button style={{...styles.btnBlue, background: '#F5A623'}}
+          onClick={() => setShowFRG(true)}>
+          💰 Verser le FRG
+        </button>
+      )}
+      {['APPROUVE', 'EN_COURS', 'SOLDE', 'DEBLOQUE'].includes(credit.statut) && (
         <button style={styles.btnBlue}
           onClick={() => ouvrirPDF(`/credits/${id}/contrat_pdf/`, `Contrat_${credit.numero_dossier}.pdf`)}>
           📄 Contrat PDF
@@ -124,11 +142,13 @@ export default function DetailCredit() {
           🧾 Reçu de déblocage
         </button>
       )}
-      {credit.statut === 'APPROUVE' && (
-          <button style={styles.btnGreen} onClick={handleDebloquer}>
-            🚀 Débloquer le crédit
-          </button>
-        )}
+      {credit.statut === 'APPROUVE' && perms.peutDebloquerCredit && (
+        <button
+          style={{...styles.btnGreen, opacity: credit.frg_verse ? 1 : 0.5, cursor: credit.frg_verse ? 'pointer' : 'not-allowed'}}
+          onClick={() => credit.frg_verse ? handleDebloquer() : alert('⚠️ Le FRG doit être versé avant le déblocage.')}>
+          🚀 {credit.frg_verse ? 'Débloquer le crédit' : 'Débloquer (FRG requis)'}
+        </button>
+      )}
       </div>
 
       {/* Modal Approbation */}
@@ -145,8 +165,8 @@ export default function DetailCredit() {
             </div>
             {montantAccorde > 0 && (
               <div style={styles.simRow}>
-                <span>FRG (1/6) : <strong>{Math.round(montantAccorde / 6).toLocaleString()} FCFA</strong></span>
-                <span>Net débloqué : <strong>{Math.round(montantAccorde - montantAccorde / 6).toLocaleString()} FCFA</strong></span>
+                <span>FRG à verser (1/6) : <strong style={{color:'#F5A623'}}>{Math.round(montantAccorde / 6).toLocaleString()} FCFA</strong></span>
+                <span>Montant débloqué : <strong style={{color:'#4BB543'}}>{Number(montantAccorde).toLocaleString()} FCFA</strong></span>
               </div>
             )}
             <div style={styles.modalActions}>
@@ -171,6 +191,33 @@ export default function DetailCredit() {
             <div style={styles.modalActions}>
               <button style={styles.btnCancel} onClick={() => setShowRejeter(false)}>Annuler</button>
               <button style={styles.btnRed} onClick={handleRejeter}>Confirmer le rejet</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Modal FRG */}
+      {showFRG && (
+        <div style={styles.modal}>
+          <div style={styles.modalBox}>
+            <h3 style={styles.modalTitle}>💰 Verser le Fonds de Risques et de Garantie</h3>
+            <p style={{fontSize: '14px', color: '#6B7280', marginBottom: '16px'}}>
+              Montant à verser : <strong style={{color: '#F5A623', fontSize: '18px'}}>{Number(credit.frg).toLocaleString()} FCFA</strong>
+            </p>
+            <p style={{fontSize: '13px', color: '#374151', marginBottom: '16px'}}>
+              Ce montant sera enregistré en caisse. Le crédit sera définitivement clôturé après ce versement.
+            </p>
+            <div style={styles.field}>
+              <label style={styles.label}>Mode de versement</label>
+              <select value={modeFRG} onChange={e => setModeFRG(e.target.value)} style={styles.input}>
+                <option value="ESPECES">Espèces</option>
+                <option value="MOBILE_MONEY">Mobile Money</option>
+              </select>
+            </div>
+            <div style={styles.modalActions}>
+              <button style={styles.btnCancel} onClick={() => setShowFRG(false)}>Annuler</button>
+              <button style={styles.btnGreen} onClick={handleVerserFRG}>✅ Confirmer le versement</button>
             </div>
           </div>
         </div>
@@ -209,6 +256,13 @@ export default function DetailCredit() {
             <Row label="Montant remboursé" value={`${Number(credit.montant_rembourse || 0).toLocaleString()} FCFA`} />
             <Row label="Montant restant" value={`${Number(credit.montant_restant || 0).toLocaleString()} FCFA`} />
             <Row label="Pénalités" value={`${Number(credit.penalites_total || 0).toLocaleString()} FCFA`} />
+            <div style={{padding: '8px', background: credit.frg_verse ? '#F0FDF4' : '#FEF3C7', borderRadius: '8px', marginTop: '8px'}}>
+              <div style={{fontSize: '13px', fontWeight: '600', color: credit.frg_verse ? '#4BB543' : '#D97706'}}>
+                {credit.frg_verse ? '✅ FRG versé' : '⚠️ FRG non encore versé'}
+              </div>
+              {credit.frg_verse && <div style={{fontSize: '12px', color: '#6B7280'}}>Le {credit.frg_date_versement}</div>}
+              {!credit.frg_verse && <div style={{fontSize: '12px', color: '#92400E'}}>À verser avant clôture : {Number(credit.frg || 0).toLocaleString()} FCFA</div>}
+            </div>
           </div>
 
           {/* Échéancier */}

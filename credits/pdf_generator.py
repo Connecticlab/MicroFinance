@@ -163,7 +163,8 @@ def generer_contrat_credit(dossier):
         ["Numéro de dossier", dossier.numero_dossier],
         ["Montant accordé", f"{int(dossier.montant_accorde):,} FCFA".replace(',', ' ')],
         ["FRG retenu (1/6)", f"{int(dossier.frg):,} FCFA".replace(',', ' ')],
-        ["Montant net débloqué", f"{int(dossier.montant_net_debloque):,} FCFA".replace(',', ' ')],
+        ["Montant débloqué", f"{int(dossier.montant_net_debloque):,} FCFA".replace(',', ' ')],
+        ["FRG à verser (avant clôture)", f"{int(dossier.frg):,} FCFA".replace(',', ' ')],
         ["Fréquence", dossier.get_frequence_remboursement_display()],
         ["Nombre d'échéances", str(dossier.nombre_echeances)],
         ["Mode de déblocage", dossier.get_mode_deblocage_display()],
@@ -210,7 +211,7 @@ def generer_contrat_credit(dossier):
     clauses = [
         "L'emprunteur s'engage à rembourser le montant du crédit selon l'échéancier défini à l'Article 3.",
         "Tout retard de paiement entraîne automatiquement l'application d'une pénalité de 2 000 FCFA par jour de retard, applicable dès le lendemain (J+1) de la date d'échéance.",
-        "Le Fonds de Risques et de Garantie (FRG) représentant 1/6 du montant accordé est retenu définitivement par la structure comme garantie et revenue de fonctionnement.",
+        "Le Fonds de Risques et de Garantie (FRG) représentant 1/6 du montant accordé doit être versé par l'emprunteur avant la clôture définitive du crédit. Ce montant constitue la garantie de la structure et ne peut être restitué.",
         "En cas de défaut de paiement persistant, la structure se réserve le droit d'engager une procédure de recouvrement pouvant aller jusqu'à des mesures légales.",
         "L'emprunteur certifie que les informations fournies sont exactes et s'engage à informer la structure de tout changement de situation.",
         "Le présent contrat est régi par les dispositions de la réglementation BCEAO relative aux Systèmes Financiers Décentralisés (SFD) en vigueur au Sénégal.",

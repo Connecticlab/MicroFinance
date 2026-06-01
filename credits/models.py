@@ -84,6 +84,15 @@ class DossierCredit(models.Model):
     )
     motif_rejet = models.TextField(blank=True)
 
+    # FRG
+    frg_verse = models.BooleanField(default=False, verbose_name='FRG versé')
+    frg_date_versement = models.DateField(null=True, blank=True, verbose_name='Date versement FRG')
+    frg_mode_versement = models.CharField(
+        max_length=20,
+        choices=[('ESPECES', 'Espèces'), ('MOBILE_MONEY', 'Mobile Money')],
+        blank=True
+    )
+
     # Suivi
     montant_rembourse = models.DecimalField(
         max_digits=12, decimal_places=2, default=0
@@ -115,7 +124,7 @@ class DossierCredit(models.Model):
             self.numero_dossier = f"CRD-{next_id:05d}"
         if self.montant_accorde:
             self.frg = round(self.montant_accorde / 6, 2)
-            self.montant_net_debloque = self.montant_accorde - self.frg
+            self.montant_net_debloque = self.montant_accorde  # FRG versé séparément
             self.montant_restant = self.montant_accorde - self.montant_rembourse
         super().save(*args, **kwargs)
 

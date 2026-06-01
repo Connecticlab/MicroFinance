@@ -42,7 +42,7 @@ export default function NouveauCredit() {
   // Calcul automatique FRG et montant net
   const montant = parseFloat(form.montant_demande) || 0;
   const frg = montant > 0 ? Math.round(montant / 6) : 0;
-  const montantNet = montant - frg;
+  const montantNet = montant;  // Le membre reçoit le montant complet, FRG versé séparément
   const echeance = form.nombre_echeances > 0
     ? Math.round(montant / form.nombre_echeances)
     : 0;

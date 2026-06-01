@@ -71,7 +71,11 @@ class RemboursementViewSet(viewsets.ModelViewSet):
         dossier.montant_restant = dossier.montant_accorde - dossier.montant_rembourse
 
         if dossier.montant_restant <= 0:
-            dossier.statut = 'SOLDE'
+            if not dossier.frg_verse:
+                # Crédit soldé mais FRG pas encore versé — on laisse EN_COURS
+                pass
+            else:
+                dossier.statut = 'SOLDE'
 
         dossier.save()
 

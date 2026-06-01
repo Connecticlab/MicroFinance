@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { getCredits, soumettreDossier, rejeterDossier } from '../../api/credits';
 
+import { usePermissions } from '../../store/authStore';
+
 export default function Credits() {
   const [credits, setCredits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const perms = usePermissions();
   const [statut, setStatut] = useState('');
   const [search, setSearch] = useState('');
 
@@ -45,7 +48,7 @@ export default function Credits() {
     <div style={styles.page}>
       <div style={styles.header}>
         <h1 style={styles.title}>Dossiers de Crédit</h1>
-        <button style={styles.btnPrimary} onClick={() => window.location.href='/credits/nouveau'}>+ Nouveau dossier</button>
+{perms.peutCreerCredit && <button style={styles.btnPrimary} onClick={() => window.location.href='/credits/nouveau'}>+ Nouveau dossier</button>}
       </div>
 
       <div style={styles.filters}>

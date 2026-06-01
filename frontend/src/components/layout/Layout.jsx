@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import useAuthStore from '../../store/authStore';
+import useAuthStore, { usePermissions } from '../../store/authStore';
 
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -8,12 +8,14 @@ const menuItems = [
   { path: '/remboursements', label: 'Remboursements', icon: '💰' },
   { path: '/caisse', label: 'Caisse', icon: '🏦' },
   { path: '/recouvrement', label: 'Recouvrement', icon: '⚠️' },
+  { path: '/utilisateurs', label: 'Utilisateurs', icon: '👥', adminOnly: true },
 ];
 
 export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const perms = usePermissions();
 
   return (
     <div style={styles.container}>
@@ -24,7 +26,7 @@ export default function Layout({ children }) {
           <p style={styles.logoSub}>CTL Group</p>
         </div>
         <nav style={styles.nav}>
-          {menuItems.map((item) => (
+          {menuItems.filter(item => !item.adminOnly || perms.peutGererUtilisateurs).map((item) => (
             <Link
               key={item.path}
               to={item.path}

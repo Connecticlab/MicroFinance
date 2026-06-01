@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import useAuthStore from './store/authStore';
+import useAuthStore, { usePermissions } from './store/authStore';
 import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Dashboard from './pages/dashboard/Dashboard';
@@ -13,10 +13,25 @@ import Remboursements from './pages/remboursements/Remboursements';
 import NouveauRemboursement from './pages/remboursements/NouveauRemboursement';
 import Caisse from './pages/caisse/Caisse';
 import Recouvrement from './pages/recouvrement/Recouvrement';
+import Utilisateurs from './pages/utilisateurs/Utilisateurs';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? children : <Navigate to="/login" />;
+}
+
+function RoleRoute({ children, permission }) {
+  const perms = usePermissions();
+  if (!perms[permission]) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
+        <h2 style={{ color: '#EF4444' }}>Accès refusé</h2>
+        <p style={{ color: '#6B7280' }}>Vous n'avez pas les droits pour accéder à cette page.</p>
+      </div>
+    );
+  }
+  return children;
 }
 
 export default function App() {
@@ -42,6 +57,11 @@ export default function App() {
                     <Route path="/remboursements/nouveau" element={<NouveauRemboursement />} />
                     <Route path="/caisse" element={<Caisse />} />
                     <Route path="/recouvrement" element={<Recouvrement />} />
+                    <Route path="/utilisateurs" element={
+                      <RoleRoute permission="peutGererUtilisateurs">
+                        <Utilisateurs />
+                      </RoleRoute>
+                    } />
                     <Route path="/" element={<Navigate to="/dashboard" />} />
                   </Routes>
                 </div>

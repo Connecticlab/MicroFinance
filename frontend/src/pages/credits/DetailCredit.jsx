@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCredit, approuverDossier, debloquerDossier, rejeterDossier, soumettreDossier } from '../../api/credits';
 import api from '../../api/axios';
+import { usePermissions } from '../../store/authStore';
 
 export default function DetailCredit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [credit, setCredit] = useState(null);
   const [loading, setLoading] = useState(true);
+  const perms = usePermissions();
   const [montantAccorde, setMontantAccorde] = useState('');
   const [motifRejet, setMotifRejet] = useState('');
   const [showApprouver, setShowApprouver] = useState(false);
@@ -100,7 +102,7 @@ export default function DetailCredit() {
         {credit.statut === 'BROUILLON' && (
           <button style={styles.btnBlue} onClick={handleSoumettre}>📤 Soumettre</button>
         )}
-        {['SOUMIS', 'EN_ETUDE'].includes(credit.statut) && (
+        {['SOUMIS', 'EN_ETUDE'].includes(credit.statut) && perms.peutApprouverCredit && (
           <>
             <button style={styles.btnGreen} onClick={() => setShowApprouver(true)}>
               ✅ Approuver

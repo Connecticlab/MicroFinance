@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { getMembres, validerAdhesion, suspendreMembre, reactiversMembre, exclureMembre } from '../../api/membres';
+import { usePermissions } from '../../store/authStore';
 
 export default function Membres() {
   const [membres, setMembres] = useState([]);
   const [loading, setLoading] = useState(true);
+  const perms = usePermissions();
   const [search, setSearch] = useState('');
   const [statut, setStatut] = useState('');
 
@@ -57,10 +59,10 @@ export default function Membres() {
     <div style={styles.page}>
       <div style={styles.header}>
         <h1 style={styles.title}>Membres</h1>
-        <button style={styles.btnPrimary}
+        {perms.peutCreerMembre && <button style={styles.btnPrimary}
           onClick={() => window.location.href = '/membres/nouveau'}>
           + Nouveau membre
-        </button>
+        </button>}
       </div>
 
       {/* Filtres */}

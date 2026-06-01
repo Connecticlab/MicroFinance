@@ -374,3 +374,173 @@ def generer_recu_deblocage(dossier):
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
+
+def generer_recu_remboursement(remboursement):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        rightMargin=2*cm, leftMargin=2*cm,
+        topMargin=2*cm, bottomMargin=2*cm,
+        title=f"Reçu {remboursement.numero_remboursement}",
+    )
+    elements = []
+
+    try:
+        from rapports.models import ParametresMicrofinance
+        params = ParametresMicrofinance.get_instance()
+        nom_structure = params.nom_structure
+        telephone_structure = params.telephone
+        adresse_structure = params.adresse
+    except:
+        nom_structure = "Microfinance+"
+        telephone_structure = ""
+        adresse_structure = ""
+
+    # En-tête
+    elements.append(Paragraph(nom_structure, ParagraphStyle(
+        "T", fontSize=18, fontName="Helvetica-Bold",
+        textColor=BLEU_FONCE, alignment=TA_CENTER, spaceAfter=4
+    )))
+    elements.append(Paragraph("REÇU DE REMBOURSEMENT", ParagraphStyle(
+        "ST", fontSize=13, fontName="Helvetica-Bold",
+        textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=4
+    )))
+    elements.append(Paragraph(
+        f"{adresse_structure} | Tél : {telephone_structure}",
+        ParagraphStyle("sub", fontSize=8, textColor=GRIS_TEXTE,
+                       fontName="Helvetica", alignment=TA_CENTER)
+    ))
+    elements.append(HRFlowable(width="100%", thickness=2,
+                                color=BLEU_CTL, spaceAfter=16))
+
+    # Numéro et date en évidence
+    elements.append(Table([[
+        Paragraph(
+            f"N° <b>{remboursement.numero_remboursement}</b>",
+            ParagraphStyle("n", fontSize=12, fontName="Helvetica-Bold",
+                           textColor=BLEU_CTL, alignment=TA_LEFT)
+        ),
+        Paragraph(
+            f"Date : <b>{remboursement.date_paiement.strftime('%d/%m/%Y') if hasattr(remboursement.date_paiement, 'strftime') else str(remboursement.date_paiement)}</b>",
+            ParagraphStyle("d", fontSize=12, fontName="Helvetica-Bold",
+                           textColor=BLEU_FONCE, alignment=TA_RIGHT)
+        ),
+    ]], colWidths=[8.5*cm, 8.5*cm]))
+    elements.append(Spacer(1, 0.4*cm))
+
+    # Informations
+    data = [
+        ["Dossier de crédit", remboursement.dossier.numero_dossier],
+        ["Membre", f"{remboursement.dossier.membre.nom} {remboursement.dossier.membre.prenom}"],
+        ["N° Membre", remboursement.dossier.membre.numero_membre],
+        ["Téléphone", remboursement.dossier.membre.telephone],
+        ["Mode de paiement", remboursement.get_mode_paiement_display()],
+        ["Référence transaction", remboursement.reference_paiement or "—"],
+        ["Saisi par", remboursement.saisi_par.get_full_name() or remboursement.saisi_par.username],
+    ]
+
+    t = Table(data, colWidths=[6*cm, 11*cm])
+    t.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (0, -1), GRIS_TEXTE),
+        ("TEXTCOLOR", (1, 0), (1, -1), BLEU_FONCE),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.white, GRIS_CLAIR]),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.5*cm))
+
+    # Montants en évidence
+    montants_data = [[
+        Paragraph(
+            f"Montant versé<br/><font size=20 color=#1A6FD4><b>{int(remboursement.montant_verse):,} FCFA</b></font>".replace(",", " "),
+            ParagraphStyle("m", fontSize=11, fontName="Helvetica-Bold",
+                           alignment=TA_CENTER, leading=28)
+        ),
+        Paragraph(
+            f"dont Principal<br/><font size=16 color=#4BB543><b>{int(remboursement.montant_principal):,} FCFA</b></font>".replace(",", " "),
+            ParagraphStyle("m2", fontSize=10, fontName="Helvetica",
+                           alignment=TA_CENTER, leading=24)
+        ),
+        Paragraph(
+            f"dont Pénalité<br/><font size=16 color=#EF4444><b>{int(remboursement.montant_penalite):,} FCFA</b></font>".replace(",", " "),
+            ParagraphStyle("m3", fontSize=10, fontName="Helvetica",
+                           alignment=TA_CENTER, leading=24)
+        ),
+    ]]
+    mt = Table(montants_data, colWidths=[6*cm, 5.5*cm, 5.5*cm])
+    mt.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#EFF6FF")),
+        ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#F0FDF4")),
+        ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#FEF2F2")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 14),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
+        ("GRID", (0, 0), (-1, -1), 1, colors.HexColor("#E5E7EB")),
+        ("ROUNDEDCORNERS", [6]),
+    ]))
+    elements.append(mt)
+    elements.append(Spacer(1, 0.5*cm))
+
+    # Situation après paiement
+    elements.append(Paragraph("Situation du crédit après ce paiement :", ParagraphStyle(
+        "s", fontSize=10, fontName="Helvetica-Bold",
+        textColor=BLEU_FONCE, spaceAfter=8
+    )))
+    sit_data = [
+        ["Montant accordé", f"{int(remboursement.dossier.montant_accorde):,} FCFA".replace(",", " ")],
+        ["Total remboursé", f"{int(remboursement.dossier.montant_rembourse):,} FCFA".replace(",", " ")],
+        ["Montant restant", f"{int(remboursement.dossier.montant_restant):,} FCFA".replace(",", " ")],
+    ]
+    st = Table(sit_data, colWidths=[6*cm, 11*cm])
+    st.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (0, -1), GRIS_TEXTE),
+        ("TEXTCOLOR", (1, 0), (1, -1), BLEU_FONCE),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.white, GRIS_CLAIR]),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
+    ]))
+    elements.append(st)
+    elements.append(Spacer(1, 0.8*cm))
+
+    # Signatures
+    sig_data = [[
+        Paragraph(
+            "<b>Signature du membre</b><br/><br/><br/><br/>______________________",
+            ParagraphStyle("s", fontSize=9, fontName="Helvetica", alignment=TA_CENTER)
+        ),
+        Paragraph(
+            "<b>Signature du caissier</b><br/><br/><br/><br/>______________________",
+            ParagraphStyle("s", fontSize=9, fontName="Helvetica", alignment=TA_CENTER)
+        ),
+    ]]
+    sig_t = Table(sig_data, colWidths=[8.5*cm, 8.5*cm])
+    sig_t.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOX", (0, 0), (0, 0), 1, colors.HexColor("#E5E7EB")),
+        ("BOX", (1, 0), (1, 0), 1, colors.HexColor("#E5E7EB")),
+    ]))
+    elements.append(sig_t)
+
+    elements.append(Spacer(1, 0.4*cm))
+    elements.append(HRFlowable(width="100%", thickness=1,
+                                color=GRIS_TEXTE, spaceAfter=6))
+    elements.append(Paragraph(
+        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure} — Connec-TIC Lab Group",
+        ParagraphStyle("f", fontSize=7, textColor=GRIS_TEXTE,
+                       fontName="Helvetica", alignment=TA_CENTER)
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer

@@ -1,4 +1,6 @@
 from rest_framework import viewsets, status, filters
+from django.http import HttpResponse
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -20,6 +22,15 @@ class RemboursementViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return RemboursementListSerializer
         return RemboursementSerializer
+
+    @action(detail=True, methods=['get'])
+    def recu_pdf(self, request, pk=None):
+        from credits.pdf_generator import generer_recu_remboursement
+        remboursement = self.get_object()
+        buffer = generer_recu_remboursement(remboursement)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Recu_{remboursement.numero_remboursement}.pdf"'
+        return response
 
     def perform_create(self, serializer):
         remboursement = serializer.save(saisi_par=self.request.user)

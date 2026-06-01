@@ -5,6 +5,19 @@ export default function Remboursements() {
   const [remboursements, setRemboursements] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const telechargerRecu = async (id, numero) => {
+    try {
+      const res = await api.get(`/remboursements/${id}/recu_pdf/`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Recu_${numero}.pdf`;
+      link.click();
+    } catch (err) {
+      alert('Erreur lors de la génération du reçu.');
+    }
+  };
+
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -42,6 +55,7 @@ export default function Remboursements() {
                 <th style={styles.th}>Montant versé</th>
                 <th style={styles.th}>Date paiement</th>
                 <th style={styles.th}>Mode paiement</th>
+                    <th style={styles.th}>Reçu</th>
               </tr>
             </thead>
             <tbody>
@@ -62,6 +76,12 @@ export default function Remboursements() {
                     </td>
                     <td style={styles.td}>{r.date_paiement}</td>
                     <td style={styles.td}>{r.mode_paiement}</td>
+                    <td style={styles.td}>
+                      <button style={styles.btnRecu}
+                        onClick={() => telechargerRecu(r.id, r.numero_remboursement)}>
+                        🧾 Reçu
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -84,4 +104,5 @@ const styles = {
   td: { padding: '12px 16px', fontSize: '14px', color: '#374151' },
   loading: { textAlign: 'center', padding: '40px', color: '#6B7280' },
   empty: { textAlign: 'center', padding: '40px', color: '#9CA3AF' },
+  btnRecu: { padding: '4px 10px', background: '#4BB543', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' },
 };

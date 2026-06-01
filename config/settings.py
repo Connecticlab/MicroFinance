@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     'rapports',
     # Filtres
     'django_filters',
+    # Celery
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -114,3 +116,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://192.168.1.8:5173',
     'http://localhost:5173',
 ]
+
+# Celery
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_TIMEZONE = 'Africa/Dakar'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

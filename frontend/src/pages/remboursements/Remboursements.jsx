@@ -21,7 +21,13 @@ export default function Remboursements() {
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>Remboursements</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>Remboursements</h1>
+        <button style={{ padding: '10px 20px', background: '#1A6FD4', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+          onClick={() => window.location.href='/remboursements/nouveau'}>
+          + Nouveau remboursement
+        </button>
+      </div>
 
       {loading ? (
         <div style={styles.loading}>Chargement...</div>

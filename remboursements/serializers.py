@@ -12,7 +12,8 @@ class RemboursementSerializer(serializers.ModelSerializer):
             'numero_remboursement',
             'montant_principal',
             'montant_penalite',
-            'created_at'
+            'created_at',
+            'saisi_par'
         )
 
 class RemboursementListSerializer(serializers.ModelSerializer):

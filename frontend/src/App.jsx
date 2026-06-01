@@ -10,6 +10,7 @@ import Credits from './pages/credits/Credits';
 import NouveauCredit from './pages/credits/NouveauCredit';
 import DetailCredit from './pages/credits/DetailCredit';
 import Remboursements from './pages/remboursements/Remboursements';
+import NouveauRemboursement from './pages/remboursements/NouveauRemboursement';
 import Caisse from './pages/caisse/Caisse';
 import Recouvrement from './pages/recouvrement/Recouvrement';
 
@@ -38,6 +39,7 @@ export default function App() {
                     <Route path="/credits/nouveau" element={<NouveauCredit />} />
                     <Route path="/credits/:id" element={<DetailCredit />} />
                     <Route path="/remboursements" element={<Remboursements />} />
+                    <Route path="/remboursements/nouveau" element={<NouveauRemboursement />} />
                     <Route path="/caisse" element={<Caisse />} />
                     <Route path="/recouvrement" element={<Recouvrement />} />
                     <Route path="/" element={<Navigate to="/dashboard" />} />

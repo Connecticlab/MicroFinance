@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import useAuthStore, { usePermissions } from './store/authStore';
 import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
@@ -13,6 +14,7 @@ import Remboursements from './pages/remboursements/Remboursements';
 import NouveauRemboursement from './pages/remboursements/NouveauRemboursement';
 import Caisse from './pages/caisse/Caisse';
 import Recouvrement from './pages/recouvrement/Recouvrement';
+import DetailRecouvrement from './pages/recouvrement/DetailRecouvrement';
 import Utilisateurs from './pages/utilisateurs/Utilisateurs';
 
 function PrivateRoute({ children }) {
@@ -35,6 +37,12 @@ function RoleRoute({ children, permission }) {
 }
 
 export default function App() {
+  const { fetchProfil, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) fetchProfil();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -57,6 +65,7 @@ export default function App() {
                     <Route path="/remboursements/nouveau" element={<NouveauRemboursement />} />
                     <Route path="/caisse" element={<Caisse />} />
                     <Route path="/recouvrement" element={<Recouvrement />} />
+                    <Route path="/recouvrement/:id" element={<DetailRecouvrement />} />
                     <Route path="/utilisateurs" element={
                       <RoleRoute permission="peutGererUtilisateurs">
                         <Utilisateurs />

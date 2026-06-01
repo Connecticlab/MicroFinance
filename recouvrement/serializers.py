@@ -7,12 +7,16 @@ class ActionRecouvrementSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActionRecouvrement
         fields = '__all__'
-        read_only_fields = ('created_at',)
+        read_only_fields = ('created_at', 'effectuee_par')
 
 class DossierRecouvrementSerializer(serializers.ModelSerializer):
     credit_detail = DossierCreditListSerializer(source='credit', read_only=True)
     actions = ActionRecouvrementSerializer(many=True, read_only=True)
     montant_restant = serializers.ReadOnlyField()
+    assigne_a_nom = serializers.SerializerMethodField()
+
+    def get_assigne_a_nom(self, obj):
+        return obj.assigne_a.get_full_name() or obj.assigne_a.username
 
     class Meta:
         model = DossierRecouvrement

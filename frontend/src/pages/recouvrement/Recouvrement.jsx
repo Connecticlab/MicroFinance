@@ -79,7 +79,11 @@ export default function Recouvrement() {
               ) : (
                 dossiers.map((d) => (
                   <tr key={d.id} style={styles.tr}>
-                    <td style={styles.td}>{d.numero_dossier}</td>
+                    <td style={styles.td}>
+                      <button style={{padding:'4px 10px', background:'#1A6FD4', color:'#fff', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'12px', marginRight:'4px'}}
+                        onClick={() => window.location.href=`/recouvrement/${d.id}`}>
+                        👁 Détail
+                      </button>{d.numero_dossier}</td>
                     <td style={styles.td}>{d.credit_numero}</td>
                     <td style={styles.td}>{d.membre_nom}</td>
                     <td style={styles.td}>{d.etape_actuelle}</td>

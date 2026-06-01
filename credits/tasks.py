@@ -61,6 +61,22 @@ def mettre_a_jour_statuts_credits():
                 credit.statut = 'EN_DEFAUT'
                 credit.save()
                 count += 1
+                # Créer automatiquement un dossier de recouvrement
+                from recouvrement.models import DossierRecouvrement
+                from core.models import Utilisateur
+                if not hasattr(credit, 'dossier_recouvrement'):
+                    superviseur = Utilisateur.objects.filter(
+                        role='SUPERVISEUR', est_actif=True
+                    ).first() or Utilisateur.objects.filter(is_staff=True).first()
+                    if superviseur:
+                        DossierRecouvrement.objects.create(
+                            credit=credit,
+                            montant_en_defaut=credit.montant_restant,
+                            assigne_a=superviseur,
+                            etape_actuelle='RELANCE_1',
+                            statut='OUVERT',
+                        )
+                        logger.info(f"Dossier recouvrement créé pour {credit.numero_dossier}")
 
     logger.info(f"Crédits mis en défaut : {count}")
     return f"{count} crédits en défaut"

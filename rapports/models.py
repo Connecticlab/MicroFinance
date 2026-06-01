@@ -46,6 +46,16 @@ class ParametresMicrofinance(models.Model):
         verbose_name='Seuil PAR 90 acceptable (%)'
     )
 
+    # Caisse
+    solde_initial_caisse = models.DecimalField(
+        max_digits=14, decimal_places=2, default=0,
+        verbose_name='Solde initial de la caisse (FCFA)'
+    )
+    date_solde_initial = models.DateField(
+        null=True, blank=True,
+        verbose_name='Date de la mise à jour du solde initial'
+    )
+
     # Exercice fiscal
     date_debut_exercice = models.DateField(null=True, blank=True)
     date_fin_exercice = models.DateField(null=True, blank=True)

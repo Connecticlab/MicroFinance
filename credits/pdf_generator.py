@@ -37,11 +37,11 @@ def generer_contrat_credit(dossier):
     # Style personnalisés
     titre_style = ParagraphStyle(
         'TitreDoc', fontSize=16, textColor=BLEU_FONCE,
-        fontName='Helvetica-Bold', alignment=TA_CENTER, spaceAfter=4
+        fontName='Helvetica-Bold', alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
     )
     sous_titre_style = ParagraphStyle(
         'SousTitre', fontSize=11, textColor=BLEU_CTL,
-        fontName='Helvetica', alignment=TA_CENTER, spaceAfter=2
+        fontName='Helvetica', alignment=TA_CENTER, spaceAfter=14
     )
     section_style = ParagraphStyle(
         'Section', fontSize=11, textColor=colors.white,
@@ -288,7 +288,7 @@ def generer_recu_deblocage(dossier):
 
     titre_style = ParagraphStyle(
         'T', fontSize=18, textColor=colors.HexColor('#111827'),
-        fontName='Helvetica-Bold', alignment=TA_CENTER, spaceAfter=4
+        fontName='Helvetica-Bold', alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
     )
     normal_style = ParagraphStyle(
         'N', fontSize=10, textColor=colors.HexColor('#111827'),
@@ -400,11 +400,11 @@ def generer_recu_remboursement(remboursement):
     # En-tête
     elements.append(Paragraph(nom_structure, ParagraphStyle(
         "T", fontSize=18, fontName="Helvetica-Bold",
-        textColor=BLEU_FONCE, alignment=TA_CENTER, spaceAfter=4
+        textColor=BLEU_FONCE, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
     )))
     elements.append(Paragraph("REÇU DE REMBOURSEMENT", ParagraphStyle(
         "ST", fontSize=13, fontName="Helvetica-Bold",
-        textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=4
+        textColor=BLEU_CTL, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
     )))
     elements.append(Paragraph(
         f"{adresse_structure} | Tél : {telephone_structure}",

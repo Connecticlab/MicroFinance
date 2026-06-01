@@ -1,17 +1,72 @@
 import { useState, useEffect } from 'react';
 import { getEcritures, getSoldeCaisse } from '../../api/dashboard';
+import { usePermissions } from '../../store/authStore';
+import api from '../../api/axios';
 
 export default function Caisse() {
   const [ecritures, setEcritures] = useState([]);
   const [solde, setSolde] = useState(null);
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState('');
+  const [categorie, setCategorie] = useState('');
+  const [dateDebut, setDateDebut] = useState('');
+  const [dateFin, setDateFin] = useState('');
+  const [showSoldeForm, setShowSoldeForm] = useState(false);
+  const [montantInitial, setMontantInitial] = useState('');
+  const [savingSolde, setSavingSolde] = useState(false);
+  const perms = usePermissions();
+
+  const handleDefinirSolde = async (e) => {
+    e.preventDefault();
+    setSavingSolde(true);
+    try {
+      await api.post('/caisse/definir_solde_initial/', { montant: montantInitial });
+      setShowSoldeForm(false);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erreur lors de la mise à jour.');
+    } finally {
+      setSavingSolde(false);
+    }
+  };
+
+  const buildQueryString = () => {
+    const params = new URLSearchParams();
+    if (type) params.append('type_ecriture', type);
+    if (categorie) params.append('categorie', categorie);
+    if (dateDebut) params.append('date_debut', dateDebut);
+    if (dateFin) params.append('date_fin', dateFin);
+    return params.toString();
+  };
+
+  const exporterPDF = async () => {
+    const qs = buildQueryString();
+    const res = await api.get(`/caisse/export_pdf/?${qs}`, { responseType: 'blob' });
+    const blob = new Blob([res.data], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.target = '_blank';
+    link.click();
+  };
+
+  const exporterExcel = async () => {
+    const qs = buildQueryString();
+    const res = await api.get(`/caisse/export_excel/?${qs}`, { responseType: 'blob' });
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Releve_Caisse.xlsx';
+    link.click();
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const params = {};
       if (type) params.type_ecriture = type;
+      if (categorie) params.categorie = categorie;
+      if (dateDebut) params.date_ecriture__gte = dateDebut;
+      if (dateFin) params.date_ecriture__lte = dateFin;
       const [e, s] = await Promise.all([
         getEcritures(params),
         getSoldeCaisse(),
@@ -25,13 +80,56 @@ export default function Caisse() {
     }
   };
 
-  useEffect(() => { fetchData(); }, [type]);
+  useEffect(() => { fetchData(); }, [type, categorie, dateDebut, dateFin]);
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>Caisse — Compte Global</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>Caisse — Compte Global</h1>
+        {perms.estDG && (
+          <button style={{ padding: '10px 20px', background: '#1A6FD4', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+            onClick={() => setShowSoldeForm(true)}>
+            💰 Définir solde initial
+          </button>
+        )}
+      </div>
 
       {/* Solde */}
+      {/* Modal solde initial */}
+      {showSoldeForm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '32px', width: '400px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '16px' }}>
+              💰 Définir le solde initial de la caisse
+            </h3>
+            <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '16px' }}>
+              Ce montant représente l'argent disponible en caisse avant toute opération dans le système.
+              {solde?.date_solde_initial && ` Dernière mise à jour : ${solde.date_solde_initial}`}
+            </p>
+            <form onSubmit={handleDefinirSolde}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#374151' }}>Montant (FCFA) *</label>
+                <input type="number" value={montantInitial}
+                  onChange={e => setMontantInitial(e.target.value)}
+                  style={{ padding: '10px 14px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                  placeholder={solde?.solde_initial ? String(solde.solde_initial) : "Ex: 500000"}
+                  required />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button type="button" style={{ padding: '10px 20px', background: '#fff', border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer' }}
+                  onClick={() => setShowSoldeForm(false)}>
+                  Annuler
+                </button>
+                <button type="submit" style={{ padding: '10px 20px', background: '#1A6FD4', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+                  disabled={savingSolde}>
+                  {savingSolde ? 'Enregistrement...' : '💾 Enregistrer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {solde && (
         <div style={styles.soldeGrid}>
           <div style={{ ...styles.soldeCard, borderTop: '4px solid #4BB543' }}>
@@ -52,20 +150,54 @@ export default function Caisse() {
               {Number(solde.solde_actuel).toLocaleString()} FCFA
             </div>
           </div>
+          <div style={{ ...styles.soldeCard, borderTop: '4px solid #F5A623' }}>
+            <div style={styles.soldeLabel}>Solde initial</div>
+            <div style={{ ...styles.soldeValue, color: '#F5A623' }}>
+              {Number(solde.solde_initial || 0).toLocaleString()} FCFA
+            </div>
+            {solde.date_solde_initial && (
+              <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px' }}>
+                Au {solde.date_solde_initial}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Filtre */}
-      <div style={styles.filters}>
-        <select
-          style={styles.select}
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-        >
-          <option value="">Toutes les écritures</option>
+      {/* Filtres */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <select style={styles.select} value={type} onChange={e => setType(e.target.value)}>
+          <option value="">Tous les types</option>
           <option value="ENTREE">Entrées</option>
           <option value="SORTIE">Sorties</option>
         </select>
+        <select style={styles.select} value={categorie} onChange={e => setCategorie(e.target.value)}>
+          <option value="">Toutes catégories</option>
+          <option value="ADHESION">Adhésion</option>
+          <option value="FRG">FRG</option>
+          <option value="DEBLOCAGE">Déblocage</option>
+          <option value="REMBOURSEMENT">Remboursement</option>
+          <option value="PENALITE">Pénalité</option>
+          <option value="AUTRE">Autre</option>
+        </select>
+        <input type="date" style={styles.select} value={dateDebut}
+          onChange={e => setDateDebut(e.target.value)} placeholder="Date début" />
+        <input type="date" style={styles.select} value={dateFin}
+          onChange={e => setDateFin(e.target.value)} placeholder="Date fin" />
+        <button style={{ padding: '10px 16px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+          onClick={() => { setType(''); setCategorie(''); setDateDebut(''); setDateFin(''); }}>
+          🔄 Réinitialiser
+        </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+          <button style={{ padding: '10px 16px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+            onClick={exporterPDF}>
+            📄 Export PDF
+          </button>
+          <button style={{ padding: '10px 16px', background: '#4BB543', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+            onClick={exporterExcel}>
+            📊 Export Excel
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -128,7 +260,7 @@ export default function Caisse() {
 const styles = {
   page: { padding: '32px', background: '#F9FAFB', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
   title: { fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '24px' },
-  soldeGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' },
+  soldeGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' },
   soldeCard: { background: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
   soldeLabel: { fontSize: '13px', color: '#6B7280', marginBottom: '8px' },
   soldeValue: { fontSize: '24px', fontWeight: 'bold' },

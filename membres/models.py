@@ -5,6 +5,8 @@ class Membre(models.Model):
 
     STATUT_CHOICES = [
         ('EN_ATTENTE', 'En attente'),
+        ('APPROUVE', 'Approuvé'),
+        ('REJETE', 'Rejeté'),
         ('ACTIF', 'Actif'),
         ('SUSPENDU', 'Suspendu'),
         ('EXCLU', 'Exclu'),
@@ -51,10 +53,23 @@ class Membre(models.Model):
 
     # Adhésion
     date_adhesion = models.DateField(auto_now_add=True)
+    date_approbation = models.DateField(null=True, blank=True)
+    date_paiement_frais = models.DateField(null=True, blank=True)
     frais_adhesion = models.DecimalField(
         max_digits=10, decimal_places=2, default=5000
     )
     frais_adhesion_paye = models.BooleanField(default=False)
+    mode_paiement_frais = models.CharField(
+        max_length=20,
+        choices=[('ESPECES', 'Espèces'), ('MOBILE_MONEY', 'Mobile Money')],
+        blank=True
+    )
+    approuve_par = models.ForeignKey(
+        'core.Utilisateur', null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='membres_approuves'
+    )
+    motif_rejet = models.TextField(blank=True)
     statut = models.CharField(
         max_length=20, choices=STATUT_CHOICES, default='EN_ATTENTE'
     )

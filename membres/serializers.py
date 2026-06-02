@@ -8,7 +8,7 @@ class MembreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Membre
         fields = '__all__'
-        read_only_fields = ('numero_membre', 'created_at', 'updated_at')
+        read_only_fields = ('numero_membre', 'date_approbation', 'date_paiement_frais', 'approuve_par', 'created_at', 'updated_at')
         extra_kwargs = {
             'copie_piece_identite': {'required': True},
             'justificatif_domicile': {'required': True},

@@ -1,12 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getMembre, getMembreUrl } from '../../api/membres';
+import api from '../../api/axios';
 
 export default function DetailMembre() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [membre, setMembre] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const telechargerRecuAdhesion = async () => {
+    try {
+      const res = await api.get(`/membres/${id}/recu_adhesion_pdf/`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.target = '_blank';
+      link.click();
+    } catch (err) {
+      alert('Erreur lors de la génération du reçu.');
+    }
+  };
 
   useEffect(() => {
     getMembre(id).then(res => {
@@ -74,6 +88,14 @@ export default function DetailMembre() {
           <h1 style={styles.title}>{membre.nom} {membre.prenom}</h1>
           <span style={styles.numero}>{membre.numero_membre}</span>
         </div>
+        {membre.frais_adhesion_paye && (
+          <button style={{
+            padding: '8px 16px', background: '#4BB543', color: '#fff',
+            border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px'
+          }} onClick={telechargerRecuAdhesion}>
+            🧾 Reçu d'adhésion
+          </button>
+        )}
         <span style={{
           ...styles.statut,
           background: (statutColor[membre.statut] || '#6B7280') + '20',

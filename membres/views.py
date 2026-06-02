@@ -45,6 +45,18 @@ class MembreViewSet(viewsets.ModelViewSet):
         return Response({'message': f'Adhésion de {membre.nom_complet} validée.'})
 
 
+    @action(detail=True, methods=['get'])
+    def recu_adhesion_pdf(self, request, pk=None):
+        from credits.pdf_generator import generer_recu_adhesion
+        from django.http import HttpResponse
+        membre = self.get_object()
+        if not membre.frais_adhesion_paye:
+            return Response({'error': 'Les frais d\'adhésion n\'ont pas encore été payés.'}, status=400)
+        buffer = generer_recu_adhesion(membre)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Recu_Adhesion_{membre.numero_membre}.pdf"'
+        return response
+
     @action(detail=True, methods=['post'])
     def approuver(self, request, pk=None):
         from django.utils import timezone

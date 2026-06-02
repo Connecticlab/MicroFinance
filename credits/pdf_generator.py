@@ -545,3 +545,130 @@ def generer_recu_remboursement(remboursement):
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
+
+def generer_recu_adhesion(membre):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        rightMargin=2*cm, leftMargin=2*cm,
+        topMargin=2*cm, bottomMargin=2*cm,
+        title=f"Reçu Adhésion {membre.numero_membre}",
+    )
+    elements = []
+
+    try:
+        from rapports.models import ParametresMicrofinance
+        params = ParametresMicrofinance.get_instance()
+        nom_structure = params.nom_structure
+        telephone_structure = params.telephone
+        adresse_structure = params.adresse
+    except:
+        nom_structure = "Microfinance+"
+        telephone_structure = ""
+        adresse_structure = ""
+
+    # En-tête
+    elements.append(Paragraph(nom_structure, ParagraphStyle(
+        "T", fontSize=18, fontName="Helvetica-Bold",
+        textColor=BLEU_FONCE, alignment=TA_CENTER,
+        spaceBefore=28, spaceAfter=14
+    )))
+    elements.append(Paragraph("REÇU D'ADHÉSION", ParagraphStyle(
+        "ST", fontSize=13, fontName="Helvetica-Bold",
+        textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=14
+    )))
+    elements.append(Paragraph(
+        f"{adresse_structure} | Tél : {telephone_structure}",
+        ParagraphStyle("sub", fontSize=8, textColor=GRIS_TEXTE,
+                       fontName="Helvetica", alignment=TA_CENTER)
+    ))
+    elements.append(HRFlowable(width="100%", thickness=2,
+                                color=BLEU_CTL, spaceAfter=16))
+
+    # Numéro et date
+    elements.append(Table([[
+        Paragraph(
+            f"N° Membre : <b>{membre.numero_membre}</b>",
+            ParagraphStyle("n", fontSize=12, fontName="Helvetica-Bold",
+                           textColor=BLEU_CTL, alignment=TA_LEFT)
+        ),
+        Paragraph(
+            f"Date : <b>{membre.date_paiement_frais.strftime('%d/%m/%Y') if membre.date_paiement_frais else str(membre.date_adhesion)}</b>",
+            ParagraphStyle("d", fontSize=12, fontName="Helvetica-Bold",
+                           textColor=BLEU_FONCE, alignment=TA_RIGHT)
+        ),
+    ]], colWidths=[8.5*cm, 8.5*cm]))
+    elements.append(Spacer(1, 0.4*cm))
+
+    # Informations membre
+    data = [
+        ["Nom et Prénom", f"{membre.nom} {membre.prenom}"],
+        ["Date de naissance", str(membre.date_naissance)],
+        ["Lieu de naissance", membre.lieu_naissance],
+        ["Téléphone", membre.telephone],
+        ["Adresse", membre.adresse],
+        ["Profession", membre.profession],
+        ["Pièce d'identité", f"{membre.type_piece} N° {membre.numero_piece}"],
+        ["Date d'adhésion", str(membre.date_adhesion)],
+        ["Mode de paiement", dict([('ESPECES', 'Espèces'), ('MOBILE_MONEY', 'Mobile Money')]).get(membre.mode_paiement_frais, 'Espèces')],
+    ]
+
+    t = Table(data, colWidths=[6*cm, 11*cm])
+    t.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (0, -1), GRIS_TEXTE),
+        ("TEXTCOLOR", (1, 0), (1, -1), BLEU_FONCE),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.white, GRIS_CLAIR]),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.5*cm))
+
+    # Montant en évidence
+    elements.append(Table([[
+        Paragraph(
+            f"Frais d'adhésion versés<br/>"
+            f"<font size=22 color=#4BB543><b>{int(membre.frais_adhesion):,} FCFA</b></font>".replace(",", " "),
+            ParagraphStyle("m", fontSize=12, fontName="Helvetica-Bold",
+                           alignment=TA_CENTER, leading=32)
+        )
+    ]], colWidths=[17*cm]))
+    elements.append(Spacer(1, 0.8*cm))
+
+    # Signatures
+    sig_data = [[
+        Paragraph(
+            "<b>Signature du membre</b><br/><br/><br/><br/>______________________",
+            ParagraphStyle("s", fontSize=9, fontName="Helvetica", alignment=TA_CENTER)
+        ),
+        Paragraph(
+            "<b>Cachet et signature</b><br/><b>de la structure</b><br/><br/><br/>______________________",
+            ParagraphStyle("s", fontSize=9, fontName="Helvetica", alignment=TA_CENTER)
+        ),
+    ]]
+    sig_t = Table(sig_data, colWidths=[8.5*cm, 8.5*cm])
+    sig_t.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOX", (0, 0), (0, 0), 1, colors.HexColor("#E5E7EB")),
+        ("BOX", (1, 0), (1, 0), 1, colors.HexColor("#E5E7EB")),
+    ]))
+    elements.append(sig_t)
+
+    elements.append(Spacer(1, 0.4*cm))
+    elements.append(HRFlowable(width="100%", thickness=1,
+                                color=GRIS_TEXTE, spaceAfter=6))
+    elements.append(Paragraph(
+        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure} — Connec-TIC Lab Group",
+        ParagraphStyle("f", fontSize=7, textColor=GRIS_TEXTE,
+                       fontName="Helvetica", alignment=TA_CENTER)
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer

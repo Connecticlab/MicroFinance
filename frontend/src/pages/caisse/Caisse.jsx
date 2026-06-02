@@ -39,6 +39,15 @@ export default function Caisse() {
     return params.toString();
   };
 
+  const buildFetchParams = () => {
+    const params = {};
+    if (type) params.type_ecriture = type;
+    if (categorie) params.categorie = categorie;
+    if (dateDebut) params['date_ecriture__gte'] = dateDebut;
+    if (dateFin) params['date_ecriture__lte'] = dateFin;
+    return params;
+  };
+
   const exporterPDF = async () => {
     const qs = buildQueryString();
     const res = await api.get(`/caisse/export_pdf/?${qs}`, { responseType: 'blob' });
@@ -81,6 +90,17 @@ export default function Caisse() {
   };
 
   useEffect(() => { fetchData(); }, [type, categorie, dateDebut, dateFin]);
+
+  // Calcul du résumé en fonction des écritures affichées
+  const totalEntreesFiltrees = ecritures
+    .filter(e => e.type_ecriture === 'ENTREE')
+    .reduce((sum, e) => sum + Number(e.montant), 0);
+  const totalSortiesFiltrees = ecritures
+    .filter(e => e.type_ecriture === 'SORTIE')
+    .reduce((sum, e) => sum + Number(e.montant), 0);
+  const soldeFiltree = totalEntreesFiltrees - totalSortiesFiltrees;
+  const nbEntrees = ecritures.filter(e => e.type_ecriture === 'ENTREE').length;
+  const nbSorties = ecritures.filter(e => e.type_ecriture === 'SORTIE').length;
 
   return (
     <div style={styles.page}>
@@ -135,13 +155,13 @@ export default function Caisse() {
           <div style={{ ...styles.soldeCard, borderTop: '4px solid #4BB543' }}>
             <div style={styles.soldeLabel}>Total entrées</div>
             <div style={{ ...styles.soldeValue, color: '#4BB543' }}>
-              + {Number(solde.total_entrees).toLocaleString()} FCFA
+              {Number(solde.total_entrees).toLocaleString()} FCFA
             </div>
           </div>
           <div style={{ ...styles.soldeCard, borderTop: '4px solid #EF4444' }}>
             <div style={styles.soldeLabel}>Total sorties</div>
             <div style={{ ...styles.soldeValue, color: '#EF4444' }}>
-              - {Number(solde.total_sorties).toLocaleString()} FCFA
+              {Number(solde.total_sorties).toLocaleString()} FCFA
             </div>
           </div>
           <div style={{ ...styles.soldeCard, borderTop: '4px solid #1A6FD4' }}>
@@ -251,6 +271,62 @@ export default function Caisse() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Résumé filtré */}
+      {!loading && ecritures.length > 0 && (
+        <div style={{
+          background: '#fff', borderRadius: '8px', marginTop: '16px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden'
+        }}>
+          <div style={{
+            background: '#111827', padding: '12px 20px',
+            display: 'flex', alignItems: 'center', gap: '8px'
+          }}>
+            <span style={{ color: '#fff', fontWeight: '600', fontSize: '14px' }}>
+              📊 Résumé — {ecritures.length} écriture{ecritures.length > 1 ? 's' : ''}
+            </span>
+            {(type || categorie || dateDebut || dateFin) && (
+              <span style={{ background: '#1A6FD4', color: '#fff', padding: '2px 10px', borderRadius: '12px', fontSize: '12px' }}>
+                Filtré
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            <div style={{ padding: '16px 20px', borderRight: '1px solid #F3F4F6' }}>
+              <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>
+                Entrées ({nbEntrees})
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4BB543' }}>
+                {totalEntreesFiltrees.toLocaleString()} FCFA
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRight: '1px solid #F3F4F6' }}>
+              <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>
+                Sorties ({nbSorties})
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#EF4444' }}>
+                {totalSortiesFiltrees.toLocaleString()} FCFA
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', borderRight: '1px solid #F3F4F6' }}>
+              <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>
+                Solde période
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: soldeFiltree >= 0 ? '#1A6FD4' : '#EF4444' }}>
+                {soldeFiltree.toLocaleString()} FCFA
+              </div>
+            </div>
+            <div style={{ padding: '16px 20px', background: '#F9FAFB' }}>
+              <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>
+                Solde global actuel
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#111827' }}>
+                {solde ? Number(solde.solde_actuel).toLocaleString() : '—'} FCFA
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -86,6 +86,17 @@ class DossierCreditViewSet(viewsets.ModelViewSet):
         dossier.save()
         # Génération automatique de l'échéancier
         self._generer_echeancier(dossier)
+
+        # Écriture de sortie en caisse pour le déblocage
+        from caisse.models import EcritureCompteGlobal
+        EcritureCompteGlobal.objects.create(
+            type_ecriture='SORTIE',
+            categorie='DEBLOCAGE',
+            montant=dossier.montant_accorde,
+            dossier_credit=dossier,
+            description=f'Déblocage crédit {dossier.numero_dossier} — {dossier.membre.nom_complet}',
+            saisi_par=request.user
+        )
         return Response({'message': f'Crédit {dossier.numero_dossier} débloqué et échéancier généré.'})
 
     def _generer_echeancier(self, dossier):

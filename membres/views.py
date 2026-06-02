@@ -32,6 +32,16 @@ class MembreViewSet(viewsets.ModelViewSet):
         membre.statut = 'ACTIF'
         membre.frais_adhesion_paye = True
         membre.save()
+
+        # Écriture en caisse pour les frais d'adhésion
+        from caisse.models import EcritureCompteGlobal
+        EcritureCompteGlobal.objects.create(
+            type_ecriture='ENTREE',
+            categorie='ADHESION',
+            montant=membre.frais_adhesion,
+            description=f'Frais adhésion — {membre.nom_complet} ({membre.numero_membre})',
+            saisi_par=request.user
+        )
         return Response({'message': f'Adhésion de {membre.nom_complet} validée.'})
 
     @action(detail=True, methods=['post'])

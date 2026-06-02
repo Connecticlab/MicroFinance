@@ -64,27 +64,28 @@ def generer_releve_pdf(ecritures, filtres=None):
     elements.append(HRFlowable(width="100%", thickness=2, color=BLEU_CTL, spaceAfter=12))
 
     # Tableau des écritures
-    headers = ["N° Écriture", "Date", "Type", "Catégorie", "Description", "Montant (FCFA)", "Solde après (FCFA)"]
+    headers = ["N° Écriture", "Date", "T.", "Catégorie", "Description", "Montant (FCFA)", "Solde après (FCFA)"]
     data = [headers]
 
     total_entrees = 0
     total_sorties = 0
 
     for e in ecritures:
-        montant = int(e.montant)
-        solde_apres = int(e.solde_apres)
+        montant = round(float(e.montant), 0)
+        solde_apres = round(float(e.solde_apres), 0)
         if e.type_ecriture == 'ENTREE':
             total_entrees += montant
-            montant_str = f"+{montant:,}".replace(',', ' ')
+            montant_str = f"{int(montant):,}".replace(',', ' ')
         else:
             total_sorties += montant
-            montant_str = f"-{montant:,}".replace(',', ' ')
+            montant_str = f"{int(montant):,}".replace(',', ' ')
 
         data.append([
             e.numero_ecriture,
             str(e.date_ecriture),
-            e.type_ecriture,
-            e.get_categorie_display(),
+            'E' if e.type_ecriture == 'ENTREE' else 'S',
+            {'ADHESION': 'Adhésion', 'FRG': 'FRG', 'DEBLOCAGE': 'Déblocage',
+             'REMBOURSEMENT': 'Rembt.', 'PENALITE': 'Pénalité', 'AUTRE': 'Autre'}.get(e.categorie, e.categorie),
             e.description[:50] + ('...' if len(e.description) > 50 else ''),
             montant_str,
             f"{solde_apres:,}".replace(',', ' '),
@@ -93,7 +94,7 @@ def generer_releve_pdf(ecritures, filtres=None):
     if not ecritures:
         data.append(["—", "—", "—", "—", "Aucune écriture", "—", "—"])
 
-    col_widths = [3*cm, 2.5*cm, 2.5*cm, 3*cm, 8*cm, 3.5*cm, 3.5*cm]
+    col_widths = [2.8*cm, 2.5*cm, 1.2*cm, 2.5*cm, 10*cm, 3*cm, 3.3*cm]
     t = Table(data, colWidths=col_widths)
     t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), BLEU_CTL),
@@ -123,8 +124,8 @@ def generer_releve_pdf(ecritures, filtres=None):
     solde_actuel = int(solde_initial) + total_entrees - total_sorties
     resume_data = [
         ["Solde initial", f"{int(solde_initial):,} FCFA".replace(',', ' ')],
-        ["Total entrées", f"+{total_entrees:,} FCFA".replace(',', ' ')],
-        ["Total sorties", f"-{total_sorties:,} FCFA".replace(',', ' ')],
+        ["Total entrées", f"{total_entrees:,} FCFA".replace(',', ' ')],
+        ["Total sorties", f"{total_sorties:,} FCFA".replace(',', ' ')],
         ["Solde final", f"{solde_actuel:,} FCFA".replace(',', ' ')],
     ]
     rt = Table(resume_data, colWidths=[5*cm, 5*cm])
@@ -198,7 +199,7 @@ def generer_releve_excel(ecritures, filtres=None):
     ws['A2'].alignment = center
 
     # En-tête tableau
-    headers = ["N° Écriture", "Date", "Type", "Catégorie", "Description", "Montant (FCFA)", "Solde après (FCFA)"]
+    headers = ["N° Écriture", "Date", "T.", "Catégorie", "Description", "Montant (FCFA)", "Solde après (FCFA)"]
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=4, column=col, value=header)
         cell.fill = bleu
@@ -211,14 +212,15 @@ def generer_releve_excel(ecritures, filtres=None):
     total_sorties = 0
 
     for row_idx, e in enumerate(ecritures, 5):
-        montant = int(e.montant)
-        solde_apres = int(e.solde_apres)
+        montant = round(float(e.montant), 0)
+        solde_apres = round(float(e.solde_apres), 0)
 
         row_data = [
             e.numero_ecriture,
             str(e.date_ecriture),
-            e.type_ecriture,
-            e.get_categorie_display(),
+            'E' if e.type_ecriture == 'ENTREE' else 'S',
+            {'ADHESION': 'Adhésion', 'FRG': 'FRG', 'DEBLOCAGE': 'Déblocage',
+             'REMBOURSEMENT': 'Rembt.', 'PENALITE': 'Pénalité', 'AUTRE': 'Autre'}.get(e.categorie, e.categorie),
             e.description,
             montant if e.type_ecriture == 'ENTREE' else -montant,
             solde_apres,

@@ -19,11 +19,13 @@ class RemboursementSerializer(serializers.ModelSerializer):
 class RemboursementListSerializer(serializers.ModelSerializer):
     dossier_numero = serializers.CharField(source='dossier.numero_dossier', read_only=True)
     membre_nom = serializers.CharField(source='dossier.membre.nom_complet', read_only=True)
+    dossier_id = serializers.IntegerField(source='dossier.id', read_only=True)
 
     class Meta:
         model = Remboursement
         fields = (
-            'id', 'numero_remboursement', 'dossier',
+            'id', 'numero_remboursement', 'dossier', 'dossier_id',
             'dossier_numero', 'membre_nom', 'montant_verse',
-            'date_paiement', 'mode_paiement'
+            'montant_principal', 'montant_penalite',
+            'date_paiement', 'mode_paiement', 'reference_paiement'
         )

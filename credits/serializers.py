@@ -32,6 +32,6 @@ class DossierCreditListSerializer(serializers.ModelSerializer):
         model = DossierCredit
         fields = (
             'id', 'numero_dossier', 'membre', 'membre_nom',
-            'montant_accorde', 'statut', 'date_deblocage',
-            'montant_restant', 'frequence_remboursement'
+            'montant_accorde', 'montant_rembourse', 'montant_restant',
+            'statut', 'date_deblocage', 'frequence_remboursement'
         )

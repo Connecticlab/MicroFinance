@@ -95,8 +95,8 @@ export default function Caisse() {
       const params = {};
       if (type) params.type_ecriture = type;
       if (categorie) params.categorie = categorie;
-      if (dateDebut) params.date_ecriture__gte = dateDebut;
-      if (dateFin) params.date_ecriture__lte = dateFin;
+      if (dateDebut) params.date_debut = dateDebut;
+      if (dateFin) params.date_fin = dateFin;
       const [e, s] = await Promise.all([getEcritures(params), getSoldeCaisse()]);
       setEcritures(e.data.results);
       setSolde(s.data);

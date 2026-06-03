@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from .filters import EcritureFilter
 from django.db.models import Sum
 from .models import EcritureCompteGlobal
 from .serializers import EcritureCompteGlobalSerializer, EcritureListSerializer
@@ -11,7 +12,7 @@ class EcritureCompteGlobalViewSet(viewsets.ModelViewSet):
     queryset = EcritureCompteGlobal.objects.all().order_by('-created_at')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type_ecriture', 'categorie', 'date_ecriture']
+    filterset_class = EcritureFilter
     search_fields = ['numero_ecriture', 'description']
     ordering_fields = ['date_ecriture', 'montant']
     http_method_names = ['get', 'head', 'options', 'post']  # post pour solde initial

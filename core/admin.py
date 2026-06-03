@@ -20,3 +20,15 @@ class UtilisateurAdmin(UserAdmin):
             'fields': ('role', 'telephone', 'est_actif')
         }),
     )
+
+
+from .models import Configuration
+
+@admin.register(Configuration)
+class ConfigurationAdmin(admin.ModelAdmin):
+    list_display = ['nom_entreprise', 'slogan']
+    fieldsets = (
+        ('Identité', {
+            'fields': ('nom_entreprise', 'slogan', 'logo', 'couleur_primaire')
+        }),
+    )

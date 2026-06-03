@@ -51,3 +51,23 @@ class UtilisateurViewSet(viewsets.ModelViewSet):
         user.set_password(nouveau)
         user.save()
         return Response({'message': 'Mot de passe modifié avec succès.'})
+
+
+from .models import Configuration
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_configuration(request):
+    config = Configuration.get()
+    logo_url = None
+    if config.logo:
+        logo_url = request.build_absolute_uri(config.logo.url)
+    return Response({
+        'nom_entreprise': config.nom_entreprise,
+        'slogan': config.slogan,
+        'logo_url': logo_url,
+        'couleur_primaire': config.couleur_primaire,
+    })

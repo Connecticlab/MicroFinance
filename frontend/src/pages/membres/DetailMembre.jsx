@@ -1,3 +1,4 @@
+import { formatDate } from '../../utils/date';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getMembre } from '../../api/membres';
@@ -139,7 +140,7 @@ export default function DetailMembre() {
                 <span style={styles.heroNumero}>{membre.numero_membre}</span>
                 <span style={{ color: '#CBD5E1', fontSize: '12px' }}>·</span>
                 <span style={{ fontSize: '13px', color: '#94A3B8' }}>
-                  Adhésion le {membre.date_adhesion || '—'}
+                  Adhésion le {formatDate(membre.date_adhesion)}
                 </span>
               </div>
             </div>

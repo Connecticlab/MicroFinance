@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getCredit, approuverDossier, debloquerDossier, rejeterDossier, soumettreDossier } from '../../api/credits';
 import api from '../../api/axios';
 import { usePermissions } from '../../store/authStore';
+import { formatDate } from '../../utils/date';
 
 const statutConfig = {
   BROUILLON:  { label: 'Brouillon',   bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB' },
@@ -310,10 +311,10 @@ export default function DetailCredit() {
             <Row label="Fréquence" value={credit.frequence_remboursement} />
             <Row label="Nombre d'échéances" value={credit.nombre_echeances} />
             <Row label="Mode de déblocage" value={credit.mode_deblocage} />
-            <Row label="Date soumission" value={credit.date_soumission} />
-            <Row label="Date approbation" value={credit.date_approbation} />
-            <Row label="Date déblocage" value={credit.date_deblocage} />
-            <Row label="Échéance finale" value={credit.date_echeance_finale} />
+            <Row label="Date soumission" value={formatDate(credit.date_soumission)} />
+            <Row label="Date approbation" value={formatDate(credit.date_approbation)} />
+            <Row label="Date déblocage" value={formatDate(credit.date_deblocage)} />
+            <Row label="Échéance finale" value={formatDate(credit.date_echeance_finale)} />
           </InfoCard>
         </div>
 
@@ -334,7 +335,7 @@ export default function DetailCredit() {
                 {credit.frg_verse ? '✓ FRG versé' : '⚠ FRG non encore versé'}
               </div>
               <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
-                {credit.frg_verse ? `Le ${credit.frg_date_versement}` : `À verser : ${Number(credit.frg || 0).toLocaleString()} FCFA`}
+                {credit.frg_verse ? `Le ${formatDate(credit.frg_date_versement)}` : `À verser : ${Number(credit.frg || 0).toLocaleString()} FCFA`}
               </div>
             </div>
           </InfoCard>
@@ -368,7 +369,7 @@ export default function DetailCredit() {
                   return (
                     <tr key={e.id} style={{ ...styles.tr, background: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
                       <td style={styles.td}><span style={{ fontWeight: '700', color: '#111827' }}>#{e.numero_echeance}</span></td>
-                      <td style={styles.td}><span style={{ fontSize: '12px', color: '#6B7280' }}>{e.date_echeance}</span></td>
+                      <td style={styles.td}><span style={{ fontSize: '12px', color: '#6B7280' }}>{formatDate(e.date_echeance)}</span></td>
                       <td style={styles.td}><span style={{ fontWeight: '600' }}>{Number(e.montant_echeance).toLocaleString()} F</span></td>
                       <td style={styles.td}><span style={{ color: '#16A34A', fontWeight: '600' }}>{Number(e.montant_paye).toLocaleString()} F</span></td>
                       <td style={styles.td}>

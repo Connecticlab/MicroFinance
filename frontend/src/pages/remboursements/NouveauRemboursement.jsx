@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../utils/date';
 import api from '../../api/axios';
 import { getCredits } from '../../api/credits';
 
@@ -192,7 +193,7 @@ export default function NouveauRemboursement() {
                 </div>
                 <div>
                   <div style={styles.kpiLabel}>Date</div>
-                  <div style={styles.kpiValue}>{prochaineEcheance.date_echeance}</div>
+                  <div style={styles.kpiValue}>{formatDate(prochaineEcheance.date_echeance)}</div>
                 </div>
                 <div>
                   <div style={styles.kpiLabel}>Montant</div>

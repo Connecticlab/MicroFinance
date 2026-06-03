@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../utils/date';
 import { getMembres, approuverMembre, rejeterMembre, payerFraisMembre, suspendreMembre, reactiversMembre, exclureMembre } from '../../api/membres';
 import { usePermissions } from '../../store/authStore';
 
@@ -127,7 +128,7 @@ export default function Membres() {
                   </div>
                   <div style={styles.infoRow}>
                     <span style={styles.infoLabel}>📅</span>
-                    <span style={styles.infoValue}>{m.date_adhesion}</span>
+                    <span style={styles.infoValue}>{formatDate(m.date_adhesion)}</span>
                   </div>
                   <div style={styles.infoRow}>
                     <span style={styles.infoLabel}>💳</span>

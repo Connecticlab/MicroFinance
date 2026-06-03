@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getEcritures, getSoldeCaisse } from '../../api/dashboard';
 import { usePermissions } from '../../store/authStore';
 import api from '../../api/axios';
+import { formatDate } from '../../utils/date';
 
 const IconEntree = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -277,7 +278,7 @@ export default function Caisse() {
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{e.date_ecriture}</span>
+                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{formatDate(e.date_ecriture)}</span>
                     </td>
                     <td style={styles.td}>
                       <span style={{ fontSize: '13px', color: '#6B7280' }}>{e.description}</span>

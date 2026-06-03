@@ -178,7 +178,7 @@ export default function DetailMembre() {
           <InfoCard icon={<IconUser />} title="Identité" color="#1A6FD4">
             <Row label="Nom complet" value={`${membre.prenom} ${membre.nom}`} />
             <Row label="Sexe" value={membre.sexe === 'M' ? 'Masculin' : 'Féminin'} />
-            <Row label="Date de naissance" value={membre.date_naissance} />
+            <Row label="Date de naissance" value={formatDate(membre.date_naissance)} />
             <Row label="Lieu de naissance" value={membre.lieu_naissance} />
           </InfoCard>
 
@@ -199,7 +199,7 @@ export default function DetailMembre() {
           <InfoCard icon={<IconId />} title="Pièce d'identité" color="#7C3AED">
             <Row label="Type" value={membre.type_piece} />
             <Row label="Numéro" value={membre.numero_piece} />
-            <Row label="Date d'expiration" value={membre.date_expiration_piece} />
+            <Row label="Date d'expiration" value={formatDate(membre.date_expiration_piece)} />
           </InfoCard>
 
           <InfoCard icon={<IconWork />} title="Activité économique" color="#F59E0B">

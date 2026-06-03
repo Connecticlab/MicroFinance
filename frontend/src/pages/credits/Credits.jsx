@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../utils/date';
 import { getCredits, soumettreDossier } from '../../api/credits';
 import { usePermissions } from '../../store/authStore';
 
@@ -113,7 +114,7 @@ export default function Credits() {
                   <tr key={c.id} style={{ ...styles.tr, background: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
                     <td style={styles.td}>
                       <div style={{ fontWeight: '700', color: '#111827', fontSize: '13px' }}>{c.numero_dossier}</div>
-                      {c.date_deblocage && <div style={{ fontSize: '11px', color: '#9CA3AF' }}>{c.date_deblocage}</div>}
+                      {c.date_deblocage && <div style={{ fontSize: '11px', color: '#9CA3AF' }}>{formatDate(c.date_deblocage)}</div>}
                     </td>
                     <td style={styles.td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

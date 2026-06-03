@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import { formatDate } from '../../utils/date';
 import { usePermissions } from '../../store/authStore';
 
 export default function Remboursements() {
@@ -153,7 +154,7 @@ export default function Remboursements() {
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{r.date_paiement}</span>
+                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{formatDate(r.date_paiement)}</span>
                     </td>
                     <td style={styles.td}>
                       <button style={styles.btnRecu}

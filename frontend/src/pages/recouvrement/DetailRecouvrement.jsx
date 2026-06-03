@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
+import { formatDate } from '../../utils/date';
 import { usePermissions } from '../../store/authStore';
 
 const statutConfig = {
@@ -288,8 +289,8 @@ export default function DetailRecouvrement() {
           </InfoCard>
 
           <InfoCard icon={<IconClip />} title="Suivi du dossier" color="#7C3AED">
-            <Row label="Date ouverture" value={dossier.date_ouverture} />
-            <Row label="Date résolution" value={dossier.date_resolution} />
+            <Row label="Date ouverture" value={formatDate(dossier.date_ouverture)} />
+            <Row label="Date résolution" value={formatDate(dossier.date_resolution)} />
             <Row label="Assigné à" value={dossier.assigne_a_nom} />
             <Row label="Étape actuelle" value={etapeCourante?.label} />
           </InfoCard>
@@ -315,7 +316,7 @@ export default function DetailRecouvrement() {
                         <span style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>
                           {typeActionIcon[a.type_action]} {typeActionLabel[a.type_action]}
                         </span>
-                        <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{a.date_action}</span>
+                        <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{formatDate(a.date_action)}</span>
                       </div>
                       <span style={{
                         display: 'inline-block', padding: '2px 10px', borderRadius: '99px',

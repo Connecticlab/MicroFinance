@@ -111,7 +111,7 @@ class Membre(models.Model):
 
     @property
     def nom_complet(self):
-        return f"{self.nom} {self.prenom}"
+        return f"{self.prenom} {self.nom}"
 
     @property
     def a_credit_actif(self):

@@ -129,37 +129,15 @@ def generer_contrat_credit(dossier):
     telephone_structure = params.telephone if params else ''
 
     # ===== EN-TÊTE =====
-    header_data = [[
-        Paragraph(f"<b>{nom_structure}</b>", ParagraphStyle(
-            'H', fontSize=14, textColor=BLEU_FONCE, fontName='Helvetica-Bold'
-        )),
-        Paragraph(
-            f"<b>CONTRAT DE CRÉDIT</b><br/>"
-            f"<font color='#1A6FD4'>N° {dossier.numero_dossier}</font>",
-            ParagraphStyle('H2', fontSize=13, textColor=BLEU_FONCE,
-                           fontName='Helvetica-Bold', alignment=TA_RIGHT)
-        ),
-    ]]
-    header_table = Table(header_data, colWidths=[9*cm, 8*cm])
-    header_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    elements.append(header_table)
+    for el in build_header(nom_structure, f"CONTRAT DE CRÉDIT N° {dossier.numero_dossier}", adresse_structure, telephone_structure):
+        elements.append(el)
 
-    elements.append(Paragraph(
-        f"{adresse_structure} | Tél : {telephone_structure} ",
-        ParagraphStyle('sub', fontSize=8, textColor=GRIS_TEXTE,
-                       fontName='Helvetica', alignment=TA_LEFT)
-    ))
-    elements.append(HRFlowable(width="100%", thickness=2,
-                                color=BLEU_CTL, spaceAfter=12))
 
     # ===== TITRE =====
     elements.append(Paragraph("CONTRAT DE PRÊT", titre_style))
     genre = "L'Emprunteuse" if dossier.membre.sexe == "F" else "L'Emprunteur"
     elements.append(Paragraph(
-        f"Entre {nom_structure} et {dossier.membre.nom} {dossier.membre.prenom}",
+        f"Entre {nom_structure} et {dossier.membre.prenom} {dossier.membre.nom}",
         sous_titre_style
     ))
     elements.append(Spacer(1, 0.3*cm))
@@ -208,7 +186,7 @@ def generer_contrat_credit(dossier):
     # Emprunteur
     elements.append(Paragraph(f"<b>{genre} :</b>", normal_style))
     elements.append(info_table([
-        ["Nom et Prénom", f"{dossier.membre.nom} {dossier.membre.prenom}"],
+        ["Nom et Prénom", f"{dossier.membre.prenom} {dossier.membre.nom}"],
         ["N° Membre", dossier.membre.numero_membre],
         ["Téléphone", dossier.membre.telephone],
         ["Adresse", dossier.membre.adresse],
@@ -292,7 +270,7 @@ def generer_contrat_credit(dossier):
     sig_data = [[
         Paragraph(
             f"<b>L'Emprunteur</b><br/><br/>"
-            f"{dossier.membre.nom} {dossier.membre.prenom}<br/><br/><br/><br/>"
+            f"{dossier.membre.prenom} {dossier.membre.nom}<br/><br/><br/><br/>"
             f"Signature :<br/>______________________",
             ParagraphStyle('sig', fontSize=9, fontName='Helvetica', alignment=TA_CENTER)
         ),
@@ -368,7 +346,7 @@ def generer_recu_deblocage(dossier):
 
     data = [
         ["N° Dossier", dossier.numero_dossier],
-        ["Membre", f"{dossier.membre.nom} {dossier.membre.prenom}"],
+        ["Membre", f"{dossier.membre.prenom} {dossier.membre.nom}"],
         ["N° Membre", dossier.membre.numero_membre],
         ["Téléphone", dossier.membre.telephone],
         ["Montant accordé", f"{int(dossier.montant_accorde):,} FCFA".replace(',', ' ')],
@@ -483,7 +461,7 @@ def generer_recu_remboursement(remboursement):
     # Informations
     data = [
         ["Dossier de crédit", remboursement.dossier.numero_dossier],
-        ["Membre", f"{remboursement.dossier.membre.nom} {remboursement.dossier.membre.prenom}"],
+        ["Membre", f"{remboursement.dossier.membre.prenom} {remboursement.dossier.membre.nom}"],
         ["N° Membre", remboursement.dossier.membre.numero_membre],
         ["Téléphone", remboursement.dossier.membre.telephone],
         ["Mode de paiement", remboursement.get_mode_paiement_display()],
@@ -672,7 +650,7 @@ def generer_recu_adhesion(membre):
 
     # Informations membre
     data = [
-        ["Nom et Prénom", f"{membre.nom} {membre.prenom}"],
+        ["Nom et Prénom", f"{membre.prenom} {membre.nom}"],
         ["Date de naissance", fmt_date(membre.date_naissance)],
         ["Lieu de naissance", membre.lieu_naissance],
         ["Téléphone", membre.telephone],

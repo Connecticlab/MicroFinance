@@ -116,7 +116,7 @@ export default function NouveauCredit() {
               <option value="">— Choisir un membre —</option>
               {membres.map(m => (
                 <option key={m.id} value={m.id} disabled={m.a_credit_actif}>
-                  {m.numero_membre} — {m.nom_complet}{m.a_credit_actif ? ' ⛔ crédit en cours' : ''}
+                  {m.numero_membre} — {m.nom_complet}{m.a_credit_actif ? ' ⛔ ' + (m.statut_credit_actif === 'SOUMIS' ? 'Crédit soumis' : m.statut_credit_actif === 'EN_ETUDE' ? 'En étude' : m.statut_credit_actif === 'APPROUVE' ? 'Crédit approuvé' : m.statut_credit_actif === 'DEBLOQUE' ? 'Crédit débloqué' : 'Crédit en cours') : ''}
                 </option>
               ))}
             </select>

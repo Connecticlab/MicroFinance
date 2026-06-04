@@ -164,7 +164,7 @@ export default function DetailMembre() {
           { label: 'Frais d\'adhésion', value: `${Number(membre.frais_adhesion || 0).toLocaleString()} FCFA`, color: '#1A6FD4', ok: true },
           { label: 'Frais payés', value: membre.frais_adhesion_paye ? '✓ Oui' : '✗ Non', color: membre.frais_adhesion_paye ? '#16A34A' : '#EF4444', ok: membre.frais_adhesion_paye },
           { label: 'Crédit actif', value: membre.a_credit_actif ? '💳 En cours' : 'Aucun', color: membre.a_credit_actif ? '#F59E0B' : '#16A34A', ok: !membre.a_credit_actif },
-          { label: 'Éligible au crédit', value: membre.eligible_credit ? '✓ Oui' : '✗ Non', color: membre.eligible_credit ? '#16A34A' : '#EF4444', ok: membre.eligible_credit },
+          { label: 'Éligible au crédit', value: (membre.statut === 'ACTIF' && !membre.a_credit_actif) ? '✓ Oui' : '✗ Non', color: (membre.statut === 'ACTIF' && !membre.a_credit_actif) ? '#16A34A' : '#EF4444', ok: (membre.statut === 'ACTIF' && !membre.a_credit_actif) },
         ].map(k => (
           <div key={k.label} style={styles.kpiCard}>
             <div style={styles.kpiLabel}>{k.label}</div>

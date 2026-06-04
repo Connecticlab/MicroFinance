@@ -4,6 +4,13 @@ from .models import Membre
 class MembreSerializer(serializers.ModelSerializer):
     nom_complet = serializers.ReadOnlyField()
     a_credit_actif = serializers.ReadOnlyField()
+    statut_credit_actif = serializers.SerializerMethodField()
+
+    def get_statut_credit_actif(self, obj):
+        credit = obj.dossiers_credit.filter(
+            statut__in=['SOUMIS', 'EN_ETUDE', 'APPROUVE', 'DEBLOQUE', 'EN_COURS']
+        ).first()
+        return credit.statut if credit else None
 
     class Meta:
         model = Membre
@@ -15,13 +22,20 @@ class MembreSerializer(serializers.ModelSerializer):
         }
 
 class MembreListSerializer(serializers.ModelSerializer):
-    """Serializer allégé pour les listes"""
     nom_complet = serializers.ReadOnlyField()
+    a_credit_actif = serializers.ReadOnlyField()
+    statut_credit_actif = serializers.SerializerMethodField()
+
+    def get_statut_credit_actif(self, obj):
+        credit = obj.dossiers_credit.filter(
+            statut__in=['SOUMIS', 'EN_ETUDE', 'APPROUVE', 'DEBLOQUE', 'EN_COURS']
+        ).first()
+        return credit.statut if credit else None
 
     class Meta:
         model = Membre
         fields = (
             'id', 'numero_membre', 'nom_complet',
             'telephone', 'statut', 'date_adhesion',
-            'frais_adhesion_paye', 'a_credit_actif'
+            'frais_adhesion_paye', 'a_credit_actif', 'statut_credit_actif'
         )

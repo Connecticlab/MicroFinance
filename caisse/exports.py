@@ -4,7 +4,8 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image
+import os
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -35,15 +36,36 @@ def generer_releve_pdf(ecritures, filtres=None):
         nom_structure = "Microfinance+"
         solde_initial = 0
 
-    # En-tête
-    elements.append(Paragraph(nom_structure, ParagraphStyle(
-        "T", fontSize=16, fontName="Helvetica-Bold",
-        textColor=BLEU_FONCE, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
-    )))
-    elements.append(Paragraph("RELEVÉ DE CAISSE — COMPTE GLOBAL", ParagraphStyle(
-        "ST", fontSize=12, fontName="Helvetica-Bold",
-        textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=14
-    )))
+    # En-tête avec logo
+    try:
+        from core.models import Configuration
+        config = Configuration.get()
+        logo_path = config.logo.path if config.logo else None
+    except:
+        logo_path = None
+
+    if logo_path and os.path.exists(logo_path):
+        header_data = [[
+            Image(logo_path, width=3.5*cm, height=1.8*cm),
+            Paragraph(
+                f"<b>{nom_structure}</b><br/>"
+                f"<font color='#1A6FD4' size=12>RELEVÉ DE CAISSE — COMPTE GLOBAL</font>",
+                ParagraphStyle("h", fontSize=14, fontName="Helvetica-Bold",
+                               textColor=BLEU_FONCE, alignment=TA_LEFT, leading=22)
+            )
+        ]]
+        ht = Table(header_data, colWidths=[4*cm, 22*cm])
+        ht.setStyle(TableStyle([('VALIGN', (0,0), (-1,-1), 'MIDDLE'), ('LEFTPADDING', (0,0), (0,0), 0)]))
+        elements.append(ht)
+    else:
+        elements.append(Paragraph(nom_structure, ParagraphStyle(
+            "T", fontSize=16, fontName="Helvetica-Bold",
+            textColor=BLEU_FONCE, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
+        )))
+        elements.append(Paragraph("RELEVÉ DE CAISSE — COMPTE GLOBAL", ParagraphStyle(
+            "ST", fontSize=12, fontName="Helvetica-Bold",
+            textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=14
+        )))
 
     # Filtres appliqués
     filtre_txt = f"Généré le {date.today().strftime('%d/%m/%Y')}"
@@ -82,7 +104,7 @@ def generer_releve_pdf(ecritures, filtres=None):
 
         data.append([
             e.numero_ecriture,
-            str(e.date_ecriture),
+            e.date_ecriture.strftime('%d/%m/%Y') if hasattr(e.date_ecriture, 'strftime') else str(e.date_ecriture),
             'E' if e.type_ecriture == 'ENTREE' else 'S',
             {'ADHESION': 'Adhésion', 'FRG': 'FRG', 'DEBLOCAGE': 'Déblocage',
              'REMBOURSEMENT': 'Rembt.', 'PENALITE': 'Pénalité', 'AUTRE': 'Autre'}.get(e.categorie, e.categorie),
@@ -217,7 +239,7 @@ def generer_releve_excel(ecritures, filtres=None):
 
         row_data = [
             e.numero_ecriture,
-            str(e.date_ecriture),
+            e.date_ecriture.strftime('%d/%m/%Y') if hasattr(e.date_ecriture, 'strftime') else str(e.date_ecriture),
             'E' if e.type_ecriture == 'ENTREE' else 'S',
             {'ADHESION': 'Adhésion', 'FRG': 'FRG', 'DEBLOCAGE': 'Déblocage',
              'REMBOURSEMENT': 'Rembt.', 'PENALITE': 'Pénalité', 'AUTRE': 'Autre'}.get(e.categorie, e.categorie),

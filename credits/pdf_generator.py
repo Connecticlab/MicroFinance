@@ -4,11 +4,71 @@ from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table,
-    TableStyle, HRFlowable
+    TableStyle, HRFlowable, Image
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 from io import BytesIO
 from datetime import date
+import os
+
+def get_logo_path():
+    try:
+        from core.models import Configuration
+        config = Configuration.get()
+        if config.logo:
+            return config.logo.path
+    except:
+        pass
+    return None
+
+def build_header(nom_structure, titre, adresse_structure, telephone_structure):
+    logo_path = get_logo_path()
+    from reportlab.platypus import Table, TableStyle, Image, Paragraph, HRFlowable
+    from reportlab.lib.units import cm
+    elements = []
+    if logo_path and os.path.exists(logo_path):
+        header_data = [[
+            Image(logo_path, width=4*cm, height=2*cm),
+            Paragraph(
+                f"<b>{nom_structure}</b><br/>"
+                f"<font color='#1A6FD4' size=13>{titre}</font><br/>"
+                f"<font size=8 color='#6B7280'>{adresse_structure} | Tél : {telephone_structure}</font>",
+                ParagraphStyle("h", fontSize=14, fontName="Helvetica-Bold",
+                               textColor=BLEU_FONCE, alignment=TA_LEFT, leading=22, spaceAfter=4)
+            )
+        ]]
+        ht = Table(header_data, colWidths=[4.5*cm, 12.5*cm])
+        ht.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('LEFTPADDING', (0,0), (0,0), 0),
+        ]))
+        elements.append(ht)
+    else:
+        elements.append(Paragraph(nom_structure, ParagraphStyle(
+            "T", fontSize=18, fontName="Helvetica-Bold",
+            textColor=BLEU_FONCE, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
+        )))
+        elements.append(Paragraph(titre, ParagraphStyle(
+            "ST", fontSize=13, fontName="Helvetica-Bold",
+            textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=14
+        )))
+        elements.append(Paragraph(
+            f"{adresse_structure} | Tél : {telephone_structure}",
+            ParagraphStyle("sub", fontSize=8, textColor=GRIS_TEXTE,
+                           fontName="Helvetica", alignment=TA_CENTER)
+        ))
+    elements.append(HRFlowable(width="100%", thickness=2, color=BLEU_CTL, spaceAfter=16))
+    return elements
+
+def fmt_date(d):
+    if not d:
+        return '—'
+    if hasattr(d, 'strftime'):
+        return d.strftime('%d/%m/%Y')
+    parts = str(d).split('-')
+    if len(parts) == 3:
+        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    return str(d)
 
 # Couleurs CTL
 BLEU_FONCE = colors.HexColor('#111827')
@@ -88,7 +148,7 @@ def generer_contrat_credit(dossier):
     elements.append(header_table)
 
     elements.append(Paragraph(
-        f"{adresse_structure} | Tél : {telephone_structure} | Connec-TIC Lab Group",
+        f"{adresse_structure} | Tél : {telephone_structure} ",
         ParagraphStyle('sub', fontSize=8, textColor=GRIS_TEXTE,
                        fontName='Helvetica', alignment=TA_LEFT)
     ))
@@ -97,6 +157,7 @@ def generer_contrat_credit(dossier):
 
     # ===== TITRE =====
     elements.append(Paragraph("CONTRAT DE PRÊT", titre_style))
+    genre = "L'Emprunteuse" if dossier.membre.sexe == "F" else "L'Emprunteur"
     elements.append(Paragraph(
         f"Entre {nom_structure} et {dossier.membre.nom} {dossier.membre.prenom}",
         sous_titre_style
@@ -145,7 +206,7 @@ def generer_contrat_credit(dossier):
     elements.append(Spacer(1, 0.3*cm))
 
     # Emprunteur
-    elements.append(Paragraph("<b>L'Emprunteur :</b>", normal_style))
+    elements.append(Paragraph(f"<b>{genre} :</b>", normal_style))
     elements.append(info_table([
         ["Nom et Prénom", f"{dossier.membre.nom} {dossier.membre.prenom}"],
         ["N° Membre", dossier.membre.numero_membre],
@@ -168,8 +229,8 @@ def generer_contrat_credit(dossier):
         ["Fréquence", dossier.get_frequence_remboursement_display()],
         ["Nombre d'échéances", str(dossier.nombre_echeances)],
         ["Mode de déblocage", dossier.get_mode_deblocage_display()],
-        ["Date de déblocage", str(dossier.date_deblocage or '—')],
-        ["Date échéance finale", str(dossier.date_echeance_finale or '—')],
+        ["Date de déblocage", fmt_date(dossier.date_deblocage)],
+        ["Date échéance finale", fmt_date(dossier.date_echeance_finale)],
         ["Pénalité de retard", "2 000 FCFA par jour de retard (J+1)"],
         ["Taux d'intérêt", "Aucun (financement solidaire)"],
     ]))
@@ -185,7 +246,7 @@ def generer_contrat_credit(dossier):
         for e in echeancier:
             ech_data.append([
                 str(e.numero_echeance),
-                str(e.date_echeance),
+                fmt_date(e.date_echeance),
                 f"{int(e.montant_echeance):,}".replace(',', ' '),
                 e.get_statut_display(),
             ])
@@ -258,7 +319,7 @@ def generer_contrat_credit(dossier):
                                 color=GRIS_TEXTE, spaceAfter=6))
     elements.append(Paragraph(
         f"Document généré le {date.today().strftime('%d/%m/%Y')} — "
-        f"{nom_structure} — Connec-TIC Lab Group — Tous droits réservés",
+        f"{nom_structure}",
         ParagraphStyle('footer', fontSize=7, textColor=GRIS_TEXTE,
                        fontName='Helvetica', alignment=TA_CENTER)
     ))
@@ -296,12 +357,14 @@ def generer_recu_deblocage(dossier):
         fontName='Helvetica', leading=16
     )
 
-    elements.append(Paragraph(nom_structure, titre_style))
-    elements.append(Paragraph("REÇU DE DÉBLOCAGE DE CRÉDIT", ParagraphStyle(
-        'ST', fontSize=13, textColor=BLEU_CTL, fontName='Helvetica-Bold',
-        alignment=TA_CENTER, spaceAfter=4
-    )))
-    elements.append(HRFlowable(width="100%", thickness=2, color=BLEU_CTL, spaceAfter=16))
+    try:
+        adresse_deb = params.adresse if params else ""
+        tel_deb = params.telephone if params else ""
+    except:
+        adresse_deb = ""
+        tel_deb = ""
+    for el in build_header(nom_structure, "REÇU DE DÉBLOCAGE DE CRÉDIT", adresse_deb, tel_deb):
+        elements.append(el)
 
     data = [
         ["N° Dossier", dossier.numero_dossier],
@@ -312,10 +375,10 @@ def generer_recu_deblocage(dossier):
         ["FRG retenu", f"{int(dossier.frg):,} FCFA".replace(',', ' ')],
         ["Montant net reçu", f"{int(dossier.montant_net_debloque):,} FCFA".replace(',', ' ')],
         ["Mode de paiement", dossier.get_mode_deblocage_display()],
-        ["Date de déblocage", str(dossier.date_deblocage)],
+        ["Date de déblocage", fmt_date(dossier.date_deblocage)],
         ["Nombre d'échéances", str(dossier.nombre_echeances)],
-        ["Première échéance", str(dossier.echeancier.first().date_echeance if dossier.echeancier.exists() else '—')],
-        ["Dernière échéance", str(dossier.date_echeance_finale or '—')],
+        ["Première échéance", fmt_date(dossier.echeancier.first().date_echeance) if dossier.echeancier.exists() else "—"],
+        ["Dernière échéance", fmt_date(dossier.date_echeance_finale)],
     ]
 
     t = Table(data, colWidths=[6*cm, 11*cm])
@@ -367,7 +430,7 @@ def generer_recu_deblocage(dossier):
     elements.append(Spacer(1, 0.5*cm))
     elements.append(HRFlowable(width="100%", thickness=1, color=GRIS_TEXTE, spaceAfter=6))
     elements.append(Paragraph(
-        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure} — Connec-TIC Lab Group",
+        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure}",
         ParagraphStyle('f', fontSize=7, textColor=GRIS_TEXTE,
                        fontName='Helvetica', alignment=TA_CENTER)
     ))
@@ -399,21 +462,8 @@ def generer_recu_remboursement(remboursement):
         adresse_structure = ""
 
     # En-tête
-    elements.append(Paragraph(nom_structure, ParagraphStyle(
-        "T", fontSize=18, fontName="Helvetica-Bold",
-        textColor=BLEU_FONCE, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
-    )))
-    elements.append(Paragraph("REÇU DE REMBOURSEMENT", ParagraphStyle(
-        "ST", fontSize=13, fontName="Helvetica-Bold",
-        textColor=BLEU_CTL, alignment=TA_CENTER, spaceBefore=28, spaceAfter=14
-    )))
-    elements.append(Paragraph(
-        f"{adresse_structure} | Tél : {telephone_structure}",
-        ParagraphStyle("sub", fontSize=8, textColor=GRIS_TEXTE,
-                       fontName="Helvetica", alignment=TA_CENTER)
-    ))
-    elements.append(HRFlowable(width="100%", thickness=2,
-                                color=BLEU_CTL, spaceAfter=16))
+    for el in build_header(nom_structure, "REÇU DE REMBOURSEMENT", adresse_structure, telephone_structure):
+        elements.append(el)
 
     # Numéro et date en évidence
     elements.append(Table([[
@@ -537,7 +587,7 @@ def generer_recu_remboursement(remboursement):
     elements.append(HRFlowable(width="100%", thickness=1,
                                 color=GRIS_TEXTE, spaceAfter=6))
     elements.append(Paragraph(
-        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure} — Connec-TIC Lab Group",
+        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure}",
         ParagraphStyle("f", fontSize=7, textColor=GRIS_TEXTE,
                        fontName="Helvetica", alignment=TA_CENTER)
     ))
@@ -568,21 +618,40 @@ def generer_recu_adhesion(membre):
         telephone_structure = ""
         adresse_structure = ""
 
-    # En-tête
-    elements.append(Paragraph(nom_structure, ParagraphStyle(
-        "T", fontSize=18, fontName="Helvetica-Bold",
-        textColor=BLEU_FONCE, alignment=TA_CENTER,
-        spaceBefore=28, spaceAfter=14
-    )))
-    elements.append(Paragraph("REÇU D'ADHÉSION", ParagraphStyle(
-        "ST", fontSize=13, fontName="Helvetica-Bold",
-        textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=14
-    )))
-    elements.append(Paragraph(
-        f"{adresse_structure} | Tél : {telephone_structure}",
-        ParagraphStyle("sub", fontSize=8, textColor=GRIS_TEXTE,
-                       fontName="Helvetica", alignment=TA_CENTER)
-    ))
+    # En-tête avec logo
+    logo_path = get_logo_path()
+    if logo_path and os.path.exists(logo_path):
+        header_data = [[
+            Image(logo_path, width=4*cm, height=2*cm),
+            Paragraph(
+                f"<b>{nom_structure}</b><br/>"
+                f"<font color='#1A6FD4' size=13>REÇU D\'ADHÉSION</font><br/>"
+                f"<font size=8 color='#6B7280'>{adresse_structure} | Tél : {telephone_structure}</font>",
+                ParagraphStyle("h", fontSize=14, fontName="Helvetica-Bold",
+                               textColor=BLEU_FONCE, alignment=TA_LEFT, leading=22, spaceAfter=4)
+            )
+        ]]
+        ht = Table(header_data, colWidths=[4.5*cm, 12.5*cm])
+        ht.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('LEFTPADDING', (0,0), (0,0), 0),
+        ]))
+        elements.append(ht)
+    else:
+        elements.append(Paragraph(nom_structure, ParagraphStyle(
+            "T", fontSize=18, fontName="Helvetica-Bold",
+            textColor=BLEU_FONCE, alignment=TA_CENTER,
+            spaceBefore=28, spaceAfter=14
+        )))
+        elements.append(Paragraph("REÇU D\'ADHÉSION", ParagraphStyle(
+            "ST", fontSize=13, fontName="Helvetica-Bold",
+            textColor=BLEU_CTL, alignment=TA_CENTER, spaceAfter=14
+        )))
+        elements.append(Paragraph(
+            f"{adresse_structure} | Tél : {telephone_structure}",
+            ParagraphStyle("sub", fontSize=8, textColor=GRIS_TEXTE,
+                           fontName="Helvetica", alignment=TA_CENTER)
+        ))
     elements.append(HRFlowable(width="100%", thickness=2,
                                 color=BLEU_CTL, spaceAfter=16))
 
@@ -604,13 +673,13 @@ def generer_recu_adhesion(membre):
     # Informations membre
     data = [
         ["Nom et Prénom", f"{membre.nom} {membre.prenom}"],
-        ["Date de naissance", str(membre.date_naissance)],
+        ["Date de naissance", fmt_date(membre.date_naissance)],
         ["Lieu de naissance", membre.lieu_naissance],
         ["Téléphone", membre.telephone],
         ["Adresse", membre.adresse],
         ["Profession", membre.profession],
         ["Pièce d'identité", f"{membre.type_piece} N° {membre.numero_piece}"],
-        ["Date d'adhésion", str(membre.date_adhesion)],
+        ["Date d'adhésion", fmt_date(membre.date_adhesion)],
         ["Mode de paiement", dict([('ESPECES', 'Espèces'), ('MOBILE_MONEY', 'Mobile Money')]).get(membre.mode_paiement_frais, 'Espèces')],
     ]
 
@@ -664,7 +733,7 @@ def generer_recu_adhesion(membre):
     elements.append(HRFlowable(width="100%", thickness=1,
                                 color=GRIS_TEXTE, spaceAfter=6))
     elements.append(Paragraph(
-        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure} — Connec-TIC Lab Group",
+        f"Document généré le {date.today().strftime('%d/%m/%Y')} — {nom_structure}",
         ParagraphStyle("f", fontSize=7, textColor=GRIS_TEXTE,
                        fontName="Helvetica", alignment=TA_CENTER)
     ))

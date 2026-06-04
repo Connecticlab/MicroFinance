@@ -116,5 +116,5 @@ class Membre(models.Model):
     @property
     def a_credit_actif(self):
         return self.dossiers_credit.filter(
-            statut__in=['APPROUVE', 'DEBLOQUE', 'EN_COURS']
+            statut__in=['SOUMIS', 'EN_ETUDE', 'APPROUVE', 'DEBLOQUE', 'EN_COURS']
         ).exists()

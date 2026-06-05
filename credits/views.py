@@ -174,3 +174,31 @@ class DossierCreditViewSet(viewsets.ModelViewSet):
         dossier.motif_rejet = motif
         dossier.save()
         return Response({'message': f'Dossier {dossier.numero_dossier} rejeté.'})
+
+    @action(detail=True, methods=['post'])
+    def ouvrir_recouvrement(self, request, pk=None):
+        from recouvrement.models import DossierRecouvrement
+        from core.models import Utilisateur
+        credit = self.get_object()
+
+        if credit.statut not in ['EN_COURS', 'EN_DEFAUT']:
+            return Response({'error': 'Le crédit doit être en cours ou en défaut.'}, status=400)
+
+        if hasattr(credit, 'dossier_recouvrement'):
+            return Response({'error': 'Un dossier de recouvrement existe déjà pour ce crédit.'}, status=400)
+
+        superviseur = Utilisateur.objects.filter(
+            role='SUPERVISEUR', est_actif=True
+        ).first() or request.user
+
+        dossier = DossierRecouvrement.objects.create(
+            credit=credit,
+            montant_en_defaut=credit.montant_restant,
+            assigne_a=superviseur,
+            etape_actuelle='RELANCE_1',
+            statut='OUVERT',
+        )
+        credit.statut = 'EN_DEFAUT'
+        credit.save()
+
+        return Response({'message': f'Dossier {dossier.numero_dossier} créé.', 'id': dossier.id})

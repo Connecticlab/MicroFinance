@@ -143,6 +143,17 @@ export default function DetailCredit() {
   };
   const handleSoumettre = async () => { await soumettreDossier(id); fetchCredit(); };
 
+  const handleOuvrirRecouvrement = async () => {
+    if (window.confirm("Confirmer l'ouverture d'un dossier de recouvrement pour ce crédit ?")) {
+      try {
+        await api.post(`/credits/${id}/ouvrir_recouvrement/`);
+        navigate('/recouvrement');
+      } catch (err) {
+        alert(err.response?.data?.error || "Erreur lors de l'ouverture du dossier.");
+      }
+    }
+  };
+
   const handleOpenEdit = () => {
     setEditForm({ notes: credit.notes || '', mode_deblocage: credit.mode_deblocage || 'ESPECES' });
     setShowEdit(true);
@@ -249,6 +260,11 @@ export default function DetailCredit() {
           </button>
         )}
         <button style={styles.btnGhost} onClick={handleOpenEdit}>✏ Modifier notes</button>
+        {['EN_COURS', 'EN_DEFAUT'].includes(credit.statut) && (perms.estDG || perms.peutGererRecouvrement) && (
+          <button style={{ ...styles.btnOrange, fontSize: '13px' }} onClick={handleOuvrirRecouvrement}>
+            ⚠ Ouvrir recouvrement
+          </button>
+        )}
         {credit.statut === 'APPROUVE' && perms.peutDebloquerCredit && (
           <button
             style={{ ...styles.btnGreen, opacity: credit.frg_verse ? 1 : 0.5, cursor: credit.frg_verse ? 'pointer' : 'not-allowed' }}

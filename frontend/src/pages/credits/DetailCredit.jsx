@@ -92,6 +92,8 @@ export default function DetailCredit() {
   const [showApprouver, setShowApprouver] = useState(false);
   const [showRejeter, setShowRejeter] = useState(false);
   const [showFRG, setShowFRG] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState({ notes: '', mode_deblocage: 'ESPECES' });
   const [modeFRG, setModeFRG] = useState('ESPECES');
 
   const ouvrirPDF = async (url, nom) => {
@@ -140,6 +142,19 @@ export default function DetailCredit() {
     } catch (err) { alert(err.response?.data?.error || 'Erreur lors du versement.'); }
   };
   const handleSoumettre = async () => { await soumettreDossier(id); fetchCredit(); };
+
+  const handleOpenEdit = () => {
+    setEditForm({ notes: credit.notes || '', mode_deblocage: credit.mode_deblocage || 'ESPECES' });
+    setShowEdit(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await api.patch(`/credits/${id}/`, editForm);
+      setShowEdit(false);
+      fetchCredit();
+    } catch (err) { alert('Erreur lors de la modification.'); }
+  };
 
   const nbPaye = credit.echeancier?.filter(e => e.statut === 'PAYE').length || 0;
   const nbTotal = credit.echeancier?.length || 0;
@@ -233,6 +248,7 @@ export default function DetailCredit() {
             🧾 Reçu déblocage
           </button>
         )}
+        <button style={styles.btnGhost} onClick={handleOpenEdit}>✏ Modifier notes</button>
         {credit.statut === 'APPROUVE' && perms.peutDebloquerCredit && (
           <button
             style={{ ...styles.btnGreen, opacity: credit.frg_verse ? 1 : 0.5, cursor: credit.frg_verse ? 'pointer' : 'not-allowed' }}
@@ -241,6 +257,29 @@ export default function DetailCredit() {
           </button>
         )}
       </div>
+
+      {/* Modal édition */}
+      <Modal show={showEdit} onClose={() => setShowEdit(false)} title="Modifier le dossier">
+        <div style={styles.field}>
+          <label style={styles.label}>Mode de déblocage</label>
+          <select value={editForm.mode_deblocage} onChange={e => setEditForm({...editForm, mode_deblocage: e.target.value})} style={styles.input}
+            disabled={['DEBLOQUE', 'EN_COURS', 'SOLDE'].includes(credit.statut)}>
+            <option value="ESPECES">💵 Espèces</option>
+            <option value="MOBILE_MONEY">📱 Mobile Money</option>
+            <option value="VIREMENT">🏦 Virement bancaire</option>
+          </select>
+        </div>
+        <div style={{ ...styles.field, marginTop: '12px' }}>
+          <label style={styles.label}>Notes et observations</label>
+          <textarea value={editForm.notes} onChange={e => setEditForm({...editForm, notes: e.target.value})}
+            style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+            placeholder="Observations, motif de la demande..." />
+        </div>
+        <div style={styles.modalActions}>
+          <button style={styles.btnCancel} onClick={() => setShowEdit(false)}>Annuler</button>
+          <button style={styles.btnGreen} onClick={handleSaveEdit}>✅ Enregistrer</button>
+        </div>
+      </Modal>
 
       {/* Modals */}
       <Modal show={showApprouver} onClose={() => setShowApprouver(false)} title="Approuver le dossier">

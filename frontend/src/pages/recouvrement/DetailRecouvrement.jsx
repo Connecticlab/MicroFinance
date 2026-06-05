@@ -79,6 +79,8 @@ export default function DetailRecouvrement() {
   const [dossier, setDossier] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAction, setShowAction] = useState(false);
+  const [editAction, setEditAction] = useState(null);
+  const [editActionForm, setEditActionForm] = useState({ notes: '', resultat: '' });
   const [action, setAction] = useState({
     type_action: 'APPEL',
     date_action: new Date().toISOString().split('T')[0],
@@ -111,6 +113,14 @@ export default function DetailRecouvrement() {
       await api.post(`/recouvrement/dossiers/${id}/passer_en_perte/`); fetchDossier();
     }
   };
+  const handleEditAction = async () => {
+    try {
+      await api.patch(`/recouvrement/actions/${editAction.id}/`, editActionForm);
+      setEditAction(null);
+      fetchDossier();
+    } catch (err) { alert('Erreur lors de la modification.'); }
+  };
+
   const handleAction = async (e) => {
     e.preventDefault();
     await api.post('/recouvrement/actions/', { ...action, dossier: id });
@@ -277,6 +287,36 @@ export default function DetailRecouvrement() {
         </div>
       )}
 
+      {/* Modal édition action */}
+      {editAction && (
+        <div style={styles.overlay}>
+          <div style={styles.modalBox}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>Modifier l'action</h3>
+              <button style={styles.btnClose} onClick={() => setEditAction(null)}>✕</button>
+            </div>
+            <div style={styles.field}>
+              <label style={styles.label}>Résultat *</label>
+              <select value={editActionForm.resultat} onChange={e => setEditActionForm({...editActionForm, resultat: e.target.value})} style={styles.input}>
+                {Object.entries(resultatConfig).map(([k, v]) => (
+                  <option key={k} value={k}>{v.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ ...styles.field, marginTop: '12px' }}>
+              <label style={styles.label}>Notes</label>
+              <textarea value={editActionForm.notes} onChange={e => setEditActionForm({...editActionForm, notes: e.target.value})}
+                style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }}
+                placeholder="Détails de l'action..." />
+            </div>
+            <div style={styles.modalActions}>
+              <button style={styles.btnCancel} onClick={() => setEditAction(null)}>Annuler</button>
+              <button style={styles.btnGreen} onClick={handleEditAction}>✅ Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Contenu */}
       <div style={styles.grid}>
         <div style={styles.col}>
@@ -330,6 +370,10 @@ export default function DetailRecouvrement() {
                           {a.notes}
                         </div>
                       )}
+                      <button style={{ marginTop: '8px', padding: '4px 10px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', color: '#374151' }}
+                        onClick={() => { setEditAction(a); setEditActionForm({ notes: a.notes || '', resultat: a.resultat }); }}>
+                        ✏ Modifier
+                      </button>
                     </div>
                   );
                 })}

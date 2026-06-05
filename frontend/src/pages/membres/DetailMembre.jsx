@@ -154,6 +154,9 @@ export default function DetailMembre() {
                 🧾 Reçu d'adhésion
               </button>
             )}
+            <button style={styles.btnRecu} onClick={() => navigate(`/membres/${id}/modifier`)}>
+              ✏ Modifier
+            </button>
           </div>
         </div>
       </div>

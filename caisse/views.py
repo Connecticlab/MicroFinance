@@ -9,7 +9,7 @@ from .models import EcritureCompteGlobal
 from .serializers import EcritureCompteGlobalSerializer, EcritureListSerializer
 
 class EcritureCompteGlobalViewSet(viewsets.ModelViewSet):
-    queryset = EcritureCompteGlobal.objects.all().order_by('-created_at')
+    queryset = EcritureCompteGlobal.objects.all().order_by('-date_ecriture', '-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = EcritureFilter

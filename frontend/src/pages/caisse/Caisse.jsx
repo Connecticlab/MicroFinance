@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getEcritures, getSoldeCaisse } from '../../api/dashboard';
 import { usePermissions } from '../../store/authStore';
 import api from '../../api/axios';
@@ -45,7 +46,9 @@ export default function Caisse() {
   const [showSoldeForm, setShowSoldeForm] = useState(false);
   const [montantInitial, setMontantInitial] = useState('');
   const [savingSolde, setSavingSolde] = useState(false);
+  const navigate = useNavigate();
   const perms = usePermissions();
+  const [selectedEcriture, setSelectedEcriture] = useState(null);
 
   const handleDefinirSolde = async (e) => {
     e.preventDefault();
@@ -224,6 +227,87 @@ export default function Caisse() {
         </div>
       </div>
 
+      {/* Modal détail écriture */}
+      {selectedEcriture && (
+        <div style={styles.overlay}>
+          <div style={styles.modalBox}>
+            <div style={styles.modalHeader}>
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                  {selectedEcriture.numero_ecriture}
+                </h3>
+                <span style={{ fontSize: '12px', color: '#6B7280' }}>{formatDate(selectedEcriture.date_ecriture)}</span>
+              </div>
+              <button style={styles.btnClose} onClick={() => setSelectedEcriture(null)}>✕</button>
+            </div>
+
+            {/* Type badge */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <span style={{
+                padding: '4px 12px', borderRadius: '99px', fontSize: '13px', fontWeight: '700',
+                background: selectedEcriture.type_ecriture === 'ENTREE' ? '#F0FDF4' : '#FEF2F2',
+                color: selectedEcriture.type_ecriture === 'ENTREE' ? '#16A34A' : '#EF4444',
+              }}>
+                {selectedEcriture.type_ecriture === 'ENTREE' ? '↑ Entrée' : '↓ Sortie'}
+              </span>
+              <span style={{ padding: '4px 12px', borderRadius: '99px', fontSize: '13px', fontWeight: '600', background: '#F3F4F6', color: '#374151' }}>
+                {selectedEcriture.categorie}
+              </span>
+            </div>
+
+            {/* Montants */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+              {[
+                { label: 'Solde avant', value: Number(selectedEcriture.solde_avant).toLocaleString() + ' F', color: '#6B7280' },
+                { label: 'Montant', value: (selectedEcriture.type_ecriture === 'ENTREE' ? '+ ' : '- ') + Number(selectedEcriture.montant).toLocaleString() + ' F', color: selectedEcriture.type_ecriture === 'ENTREE' ? '#16A34A' : '#EF4444' },
+                { label: 'Solde après', value: Number(selectedEcriture.solde_apres).toLocaleString() + ' F', color: '#1A6FD4' },
+              ].map(k => (
+                <div key={k.label} style={{ background: '#F8FAFC', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: '#6B7280', marginBottom: '4px', textTransform: 'uppercase' }}>{k.label}</div>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: k.color }}>{k.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Infos */}
+            <div style={{ background: '#F8FAFC', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '13px', color: '#374151', marginBottom: '6px' }}>
+                <span style={{ color: '#6B7280' }}>Description : </span>{selectedEcriture.description}
+              </div>
+              {selectedEcriture.membre_nom && (
+                <div style={{ fontSize: '13px', color: '#374151', marginBottom: '6px' }}>
+                  <span style={{ color: '#6B7280' }}>Membre : </span>{selectedEcriture.membre_nom}
+                </div>
+              )}
+              {selectedEcriture.saisi_par_nom && (
+                <div style={{ fontSize: '13px', color: '#374151' }}>
+                  <span style={{ color: '#6B7280' }}>Saisi par : </span>{selectedEcriture.saisi_par_nom}
+                </div>
+              )}
+            </div>
+
+            {/* Liens */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {selectedEcriture.dossier_credit_id && (
+                <button style={styles.btnLien} onClick={() => { setSelectedEcriture(null); navigate('/credits/' + selectedEcriture.dossier_credit_id); }}>
+                  💳 Voir le crédit {selectedEcriture.dossier_credit_numero}
+                </button>
+              )}
+              {selectedEcriture.remboursement_id && (
+                <button style={styles.btnLien} onClick={() => { setSelectedEcriture(null); navigate('/remboursements/' + selectedEcriture.remboursement_id); }}>
+                  💰 Voir le remboursement {selectedEcriture.remboursement_numero}
+                </button>
+              )}
+              {selectedEcriture.membre_id && (
+                <button style={{ ...styles.btnLien, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }} onClick={() => { setSelectedEcriture(null); navigate('/membres/' + selectedEcriture.membre_id); }}>
+                  👤 Voir le membre
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tableau */}
       {loading ? (
         <div style={styles.empty}>Chargement...</div>
@@ -248,7 +332,7 @@ export default function Caisse() {
                 const isEntree = e.type_ecriture === 'ENTREE';
                 const cat = categorieBadge(e.categorie);
                 return (
-                  <tr key={e.id} style={{ ...styles.tr, background: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
+                  <tr key={e.id} style={{ ...styles.tr, background: i % 2 === 0 ? '#fff' : '#FAFAFA', cursor: 'pointer' }} onClick={() => setSelectedEcriture(e)}>
                     <td style={styles.td}>
                       <span style={{ fontWeight: '600', fontSize: '13px', color: '#111827' }}>{e.numero_ecriture}</span>
                     </td>
@@ -354,6 +438,11 @@ const styles = {
   tr: { borderBottom: '1px solid #F3F4F6' },
   td: { padding: '13px 16px', fontSize: '14px', color: '#374151', verticalAlign: 'middle' },
   empty: { textAlign: 'center', padding: '40px', color: '#9CA3AF' },
+  overlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modalBox: { background: '#fff', borderRadius: '12px', padding: '24px', width: '500px', maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' },
+  btnClose: { background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#6B7280' },
+  btnLien: { padding: '8px 14px', background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
   resumeCard: { background: '#fff', borderRadius: '10px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' },
   resumeHeader: { background: '#111827', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '10px' },
   resumeGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' },
